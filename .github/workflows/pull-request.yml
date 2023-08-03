@@ -15,9 +15,8 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Change wrapper permissions
-        run: chmod +x ./gradlew
-      - name: Run tests & launch project
+      - name: Change wrapper permissions then run tests
         working-directory: starter
         run: |
+          chmod +x ./gradlew
           ./gradlew test run
