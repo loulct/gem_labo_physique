@@ -46,8 +46,6 @@ public class Main extends AbstractVerticle{
 
         router.route().handler(StaticHandler.create("src/main/resources/webroot"));
 
-        //router.route().handler(StaticHandler.create("src/main/resources/login.html"));
-
         vertx.createHttpServer().requestHandler(router).listen(8888);
     }
 }
