@@ -19,4 +19,4 @@ jobs:
         working-directory: starter
         run: |
           chmod +x ./gradlew
-          ./gradlew test run
+          ./gradlew clean test
