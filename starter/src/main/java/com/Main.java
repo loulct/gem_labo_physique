@@ -1,7 +1,6 @@
 package com.example.starter;
 
 import io.vertx.core.Launcher;
-//import io.vertx.core.Promise;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
 import io.vertx.core.AbstractVerticle;

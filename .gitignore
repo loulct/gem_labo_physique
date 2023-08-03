@@ -1,1 +1,7 @@
+# Ignored directories and files
+
 .gradle
+
+.vscode
+
+build
