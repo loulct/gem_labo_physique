@@ -29,7 +29,7 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text"><label for="username"><i class="fa fa-user"></i></label></span>
                             </div>
-                            <input id="username" name="username" type="text" class="form-control" value="" placeholder="Identifiant" required/>
+                            <input id="username" name="username" type="text" class="form-control" value="" placeholder="E-mail" required/>
                         </div>
                         <div class="forgot-password">
                             <a class="forgot-password-link" href="#">Mot de passe oublié ?</a>
@@ -51,45 +51,4 @@
     <div>
 </body>
 
-<script type="text/javascript">
-    const btn = document.getElementById('btn');
-
-    btn.addEventListener('click', function() {
-        let isValid = validateForm();
-
-        if (isValid)
-            console.log('Form is ready to submit.');
-        }
-    );
-
-    function validateForm() {
-        let formToValidate = document.getElementById('login');
-        let elements = formToValidate.elements;
-
-        for (let i = 0; i < elements.length; i++) {
-            if (elements[i].type == 'text') {
-                let invalid = elements[i].value.length == 0;
-
-                console.log(invalid);
-                if (invalid) {
-                    elements[i].setCustomValidity('L\'identifiant n\'est pas valide');
-                    return false;
-                }else{
-                    elements[i].setCustomValidity('');
-                }
-            }
-
-            if(elements[i].type == 'password'){
-                let invalid = elements[i].value.length == 0;
-
-                if (invalid) {
-                    elements[i].setCustomValidity('Le mot de passe n\'est pas valide');
-                    return false;
-                }else{
-                    elements[i].setCustomValidity('');
-                }
-            }
-        }
-        return true;
-    }
-</script>
+<script type="module" id="helper" name="login" src="./scripts/validateForm.js"></script>
