@@ -32,6 +32,7 @@ dependencies {
   implementation("io.vertx:vertx-core")
   implementation("io.vertx:vertx-web:$vertxVersion")
   implementation("io.vertx:vertx-auth-properties:$vertxVersion")
+  implementation("io.vertx:vertx-mail-client:$vertxVersion")
   testImplementation("io.vertx:vertx-junit5")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }
