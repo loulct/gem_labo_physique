@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -65,7 +66,9 @@ public class Main extends AbstractVerticle{
 
             try{
                 String content = new String(Files.readAllBytes(path), charset);
-                content = content.replaceAll("<p>Mot de passe : </p>", "<p>Mot de passe : "+ body + "</p>");
+                String uuid = UUID.randomUUID().toString();
+
+                content = content.replaceAll("<p>Mot de passe : </p>", "<p>Mot de passe : <strong>"+ uuid + "</strong></p>");
 
                 MailMessage email = new MailMessage()
                 .setFrom("gem-labo-physique@gem-labo.com")
@@ -94,8 +97,10 @@ public class Main extends AbstractVerticle{
 
             try{
                 String content = new String(Files.readAllBytes(path), charset);
+                String uuid = UUID.randomUUID().toString();
+
                 content = content.replaceAll("<p>Adresse e-mail : </p>", "<p>Adresse e-mail : "+ body + "</p>");
-                content = content.replaceAll("<p>Mot de passe : </p>", "<p>Mot de passe : "+ body + "</p>");
+                content = content.replaceAll("<p>Mot de passe : </p>", "<p>Mot de passe : <strong>"+ uuid + "</strong></p>");
                 
                 
                 MailMessage email = new MailMessage()
