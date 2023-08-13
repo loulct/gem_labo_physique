@@ -1,6 +1,8 @@
 package com.example.starter;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.io.File;
 import java.util.Scanner;
 import java.nio.file.Path;
@@ -17,6 +19,7 @@ import io.vertx.core.Launcher;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
@@ -34,8 +37,12 @@ public class Main extends AbstractVerticle{
         Launcher.executeCommand("run", Main.class.getName());
     }
 
+    private Map<String, JsonObject> tools = new HashMap<>();
+
     @Override
     public void start() throws Exception {
+
+        setUpInitialData();
 
         Router router = Router.router(vertx);
         
@@ -47,6 +54,10 @@ public class Main extends AbstractVerticle{
         router.route("/private/*").handler(RedirectAuthHandler.create(authn, "/login.html"));
 
         router.route("/private/*").handler(StaticHandler.create("src/main/resources/private").setCachingEnabled(false));
+
+        router.route("/private/tools/:toolID").handler(this::handleGetTool);
+        router.route("/private/tools/:toolID").handler(this::handleAddTool);
+        router.route("/private/tools").handler(this::handleListTool);
 
         router.route("/loginhandler").handler(FormLoginHandler.create(authn).setDirectLoggedInOKURL("/private/main.html"))
             .failureHandler(context -> {
@@ -146,5 +157,56 @@ public class Main extends AbstractVerticle{
                 result.cause().printStackTrace();
             }
         });
+    }
+
+    private void handleGetTool(RoutingContext context){
+        String toolID = context.request().getParam("toolID");
+        HttpServerResponse response = context.response();
+        if(toolID == null){
+            sendError(400, response);
+        }else{
+            JsonObject tool = tools.get(toolID);
+            if(tool == null){
+                sendError(404, response);
+            }else{
+                response.putHeader("content-type", "application/json").end(tool.encodePrettily());
+            }
+        }
+    }
+
+    private void handleAddTool(RoutingContext context){
+        String toolID = context.request().getParam("toolID");
+        HttpServerResponse response = context.response();
+        if(toolID == null){
+            sendError(400, response);
+        }else{
+            JsonObject tool = context.getBodyAsJson();
+            if(tool == null){
+                sendError(400, response);
+            }else{
+                tools.put(toolID, tool);
+                response.end();
+            }
+        }
+    }
+
+    private void handleListTool(RoutingContext context){
+        JsonArray arr = new JsonArray();
+        tools.forEach((k, v) -> arr.add(v));
+        context.response().putHeader("content-type", "application/json").end(arr.encodePrettily());
+    }
+
+    private void sendError(int statusCode, HttpServerResponse response){
+        response.setStatusCode(statusCode).end();
+    }
+
+    private void setUpInitialData(){
+        addTool(new JsonObject().put("idISEP", "001").put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("isAvailable", true).put("returnDate", null));
+        addTool(new JsonObject().put("idISEP", "002").put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("isAvailable", true).put("returnDate", null));
+        addTool(new JsonObject().put("idISEP", "003").put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", true).put("returnDate", null));
+    }
+
+    private void addTool(JsonObject tool){
+        tools.put(tool.getString("idISEP"), tool);
     }
 }
