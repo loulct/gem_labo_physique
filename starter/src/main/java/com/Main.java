@@ -3,8 +3,14 @@ package com.example.starter;
 import java.util.Arrays;
 import java.io.File;
 import java.util.Scanner;
+import java.nio.file.Path;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import io.vertx.core.Launcher;
 import io.vertx.ext.web.Router;
@@ -52,10 +58,14 @@ public class Main extends AbstractVerticle{
 
         router.route("/forgotpassword").handler(context -> {
 
+            String body = context.getBodyAsString();
+
+            Path path = Paths.get("src/main/resources/emails/password.html");
+            Charset charset = StandardCharsets.UTF_8;
+
             try{
-                Scanner scanner = new Scanner(new File("src/main/resources/emails/password.html"));
-                String text = scanner.useDelimiter("\\A").next();
-                scanner.close();
+                String content = new String(Files.readAllBytes(path), charset);
+                content = content.replaceAll("<p>Mot de passe : </p>", "<p>Mot de passe : "+ body + "</p>");
 
                 MailMessage email = new MailMessage()
                 .setFrom("gem-labo-physique@gem-labo.com")
@@ -64,11 +74,11 @@ public class Main extends AbstractVerticle{
                     "admin@gem-labo.com"))
                 .setBounceAddress("gem-labo-physique@gem-labo.com")
                 .setSubject("GEM LABO PHYSIQUE : Mot de passe mis à jour")
-                .setHtml(text);
+                .setHtml(content);
 
                 resultsMail(email);
 
-            }catch(FileNotFoundException e) {
+            }catch(IOException e) {
                 System.out.println(e);
             }
 
@@ -77,11 +87,17 @@ public class Main extends AbstractVerticle{
 
         router.route("/signuphandler").handler(context -> {
 
-            try{
-                Scanner scanner = new Scanner(new File("src/main/resources/emails/setup.html"));
-                String text = scanner.useDelimiter("\\A").next();
-                scanner.close();
+            String body = context.getBodyAsString();
 
+            Path path = Paths.get("src/main/resources/emails/setup.html");
+            Charset charset = StandardCharsets.UTF_8;
+
+            try{
+                String content = new String(Files.readAllBytes(path), charset);
+                content = content.replaceAll("<p>Adresse e-mail : </p>", "<p>Adresse e-mail : "+ body + "</p>");
+                content = content.replaceAll("<p>Mot de passe : </p>", "<p>Mot de passe : "+ body + "</p>");
+                
+                
                 MailMessage email = new MailMessage()
                 .setFrom("gem-labo-physique@gem-labo.com")
                 .setTo(Arrays.asList(
@@ -89,16 +105,13 @@ public class Main extends AbstractVerticle{
                     "admin@gem-labo.com"))
                 .setBounceAddress("gem-labo-physique@gem-labo.com")
                 .setSubject("GEM LABO PHYSIQUE : Votre compte a été créé")
-                .setHtml(text);
+                .setHtml(content);
 
                 resultsMail(email);
-
-            }catch(FileNotFoundException e) {
+            }catch(IOException e){
                 System.out.println(e);
             }
 
-            String body = context.getBodyAsString();
-            System.out.println(body);
             context.response().putHeader("location", "/login.html").setStatusCode(302).end();
         });
 
