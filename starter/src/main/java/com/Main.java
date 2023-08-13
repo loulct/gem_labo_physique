@@ -59,7 +59,7 @@ public class Main extends AbstractVerticle{
 
         router.route("/forgotpassword").handler(context -> {
 
-            String body = context.getBodyAsString();
+            String userEmail = context.request().getParam("username").toLowerCase();
 
             Path path = Paths.get("src/main/resources/emails/password.html");
             Charset charset = StandardCharsets.UTF_8;
@@ -73,7 +73,7 @@ public class Main extends AbstractVerticle{
                 MailMessage email = new MailMessage()
                 .setFrom("gem-labo-physique@gem-labo.com")
                 .setTo(Arrays.asList(
-                    "test@user.com",
+                    userEmail,
                     "admin@gem-labo.com"))
                 .setBounceAddress("gem-labo-physique@gem-labo.com")
                 .setSubject("GEM LABO PHYSIQUE : Mot de passe mis à jour")
@@ -90,8 +90,11 @@ public class Main extends AbstractVerticle{
 
         router.route("/signuphandler").handler(context -> {
 
-            String body = context.getBodyAsString();
-
+            String userEmail = context.request().getParam("lastname").toLowerCase() + 
+                "." + 
+                context.request().getParam("firstname").toLowerCase() +
+                "@gem-labo.com";
+            
             Path path = Paths.get("src/main/resources/emails/setup.html");
             Charset charset = StandardCharsets.UTF_8;
 
@@ -99,14 +102,14 @@ public class Main extends AbstractVerticle{
                 String content = new String(Files.readAllBytes(path), charset);
                 String uuid = UUID.randomUUID().toString();
 
-                content = content.replaceAll("<p>Adresse e-mail : </p>", "<p>Adresse e-mail : "+ body + "</p>");
+                content = content.replaceAll("<p>Adresse e-mail : </p>", "<p>Adresse e-mail : "+ userEmail + "</p>");
                 content = content.replaceAll("<p>Mot de passe : </p>", "<p>Mot de passe : <strong>"+ uuid + "</strong></p>");
                 
                 
                 MailMessage email = new MailMessage()
                 .setFrom("gem-labo-physique@gem-labo.com")
                 .setTo(Arrays.asList(
-                    "test@user.com",
+                    userEmail,
                     "admin@gem-labo.com"))
                 .setBounceAddress("gem-labo-physique@gem-labo.com")
                 .setSubject("GEM LABO PHYSIQUE : Votre compte a été créé")
