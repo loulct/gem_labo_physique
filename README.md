@@ -2,15 +2,13 @@
 
 ## TODO
 ### Priority 1
-- js script ? check if username (email) is filled -> then route /forgotpassword works
-- in route /forgotpassword email.setTo should use filled username field
-- signup form -> create email adress and notify (email) admins
-- emails -> variable mdp & username
+- add forgotpassword html page form (redirect href) then use route /forgotpassword on submit to send email
+- forgotpassword form -> parse form-data body for email body and receiver
+- signup form -> parse form-data body for email body and receiver
 
 ### Priority 2
-- signup form -> add user to vertx-properties when post (don't know if vertx-properties is dynamic so maybe look for others options like jsonObjects)
+- signup form -> add user to vertx-properties when post (don't know if vertx-properties is dynamic so maybe look for others options like jsonObjects) || (maybe use a class User or something and use class Object for signup and login)
 - timeout session (look at SessionHandlers)
-- add more tests verticles
 - add available_tools page (GET route)
 - add unavailable_tools page (as another tab) (GET route)
 - add add_tool page (POST route)
@@ -24,3 +22,4 @@
 - optimise css files (main.css)
 - improve password regex
 - update README.md (how to install & how to use)
+- add more tests verticles
