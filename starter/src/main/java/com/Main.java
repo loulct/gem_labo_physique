@@ -102,7 +102,7 @@ public class Main extends AbstractVerticle{
                 String content = new String(Files.readAllBytes(path), charset);
                 String uuid = UUID.randomUUID().toString();
 
-                content = content.replaceAll("<p>Adresse e-mail : </p>", "<p>Adresse e-mail : "+ userEmail + "</p>");
+                content = content.replaceAll("<p>Adresse e-mail : </p>", "<p>Adresse e-mail : <strong>"+ userEmail + "</strong></p>");
                 content = content.replaceAll("<p>Mot de passe : </p>", "<p>Mot de passe : <strong>"+ uuid + "</strong></p>");
                 
                 
