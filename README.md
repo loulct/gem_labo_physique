@@ -16,6 +16,7 @@
 - timeout session (look at SessionHandlers)
 
 ### Priority 4
+- improve java structure
 - add stats (frequency of use)
 
 ### Priority 5
