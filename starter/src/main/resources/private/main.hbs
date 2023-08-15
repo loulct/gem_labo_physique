@@ -87,26 +87,10 @@
             </tbody>
         </table>
     </div>
-
-    <script type="text/javascript">
-        document.getElementById("default").click();
-
-        function showTab(evt, tabName) {
-            // Declare all variables
-            var i, table, navlink;
-
-            table = document.getElementsByClassName("table");
-            for (i = 0; i < table.length; i++) {
-                table[i].style.display = "none";
-            }
-
-            navlink = document.getElementsByClassName("nav-link");
-            for (i = 0; i < navlink.length; i++) {
-                navlink[i].className = navlink[i].className.replace(" active", "");
-            }
-
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
-        }
+    <script>
+        window.addEventListener('load', function(e){
+            document.getElementById("default").click();
+        });
     </script>
+    <script type="module" src="./scripts/showTab.js"></script>
 </body>
