@@ -74,32 +74,28 @@ public class Main extends AbstractVerticle{
         router.route("/forgotpassword").handler(context -> {
 
             String userEmail = context.request().getParam("username").toLowerCase();
+            String uuid = UUID.randomUUID().toString();
 
-            Path path = Paths.get("src/main/resources/emails/password.html");
-            Charset charset = StandardCharsets.UTF_8;
+            JsonObject data = new JsonObject().put("username", userEmail).put("password", uuid);
 
-            try{
-                String content = new String(Files.readAllBytes(path), charset);
-                String uuid = UUID.randomUUID().toString();
+            engine.render(data, "private/password.hbs", res -> {
+                if(res.succeeded()){
+                    MailMessage email = new MailMessage()
+                        .setFrom("gem-labo-physique@gem-labo.com")
+                        .setTo(Arrays.asList(
+                            userEmail,
+                            "admin@gem-labo.com"))
+                        .setBounceAddress("gem-labo-physique@gem-labo.com")
+                        .setSubject("GEM LABO PHYSIQUE : Mot de passe mis à jour")
+                        .setHtml(res.result().toString());
 
-                content = content.replaceAll("<p>Mot de passe : </p>", "<p>Mot de passe : <strong>"+ uuid + "</strong></p>");
+                    resultsMail(email);
 
-                MailMessage email = new MailMessage()
-                .setFrom("gem-labo-physique@gem-labo.com")
-                .setTo(Arrays.asList(
-                    userEmail,
-                    "admin@gem-labo.com"))
-                .setBounceAddress("gem-labo-physique@gem-labo.com")
-                .setSubject("GEM LABO PHYSIQUE : Mot de passe mis à jour")
-                .setHtml(content);
-
-                resultsMail(email);
-
-            }catch(IOException e) {
-                System.out.println(e);
-            }
-
-            context.response().putHeader("location", "/login.html").setStatusCode(302).end();
+                    context.response().putHeader("location", "/login.html").setStatusCode(302).end();
+                }else{
+                    context.fail(res.cause());
+                }
+            });
         });
 
         router.route("/signuphandler").handler(context -> {
@@ -108,33 +104,29 @@ public class Main extends AbstractVerticle{
                 "." + 
                 context.request().getParam("firstname").toLowerCase() +
                 "@gem-labo.com";
-            
-            Path path = Paths.get("src/main/resources/emails/setup.html");
-            Charset charset = StandardCharsets.UTF_8;
 
-            try{
-                String content = new String(Files.readAllBytes(path), charset);
-                String uuid = UUID.randomUUID().toString();
+            String uuid = UUID.randomUUID().toString();
 
-                content = content.replaceAll("<p>Adresse e-mail : </p>", "<p>Adresse e-mail : <strong>"+ userEmail + "</strong></p>");
-                content = content.replaceAll("<p>Mot de passe : </p>", "<p>Mot de passe : <strong>"+ uuid + "</strong></p>");
-                
-                
-                MailMessage email = new MailMessage()
-                .setFrom("gem-labo-physique@gem-labo.com")
-                .setTo(Arrays.asList(
-                    userEmail,
-                    "admin@gem-labo.com"))
-                .setBounceAddress("gem-labo-physique@gem-labo.com")
-                .setSubject("GEM LABO PHYSIQUE : Votre compte a été créé")
-                .setHtml(content);
+            JsonObject data = new JsonObject().put("username", userEmail).put("password", uuid);
 
-                resultsMail(email);
-            }catch(IOException e){
-                System.out.println(e);
-            }
+            engine.render(data, "private/setup.hbs", res -> {
+                if(res.succeeded()){
+                    MailMessage email = new MailMessage()
+                        .setFrom("gem-labo-physique@gem-labo.com")
+                        .setTo(Arrays.asList(
+                            userEmail,
+                            "admin@gem-labo.com"))
+                        .setBounceAddress("gem-labo-physique@gem-labo.com")
+                        .setSubject("GEM LABO PHYSIQUE : Votre compte a été créé")
+                        .setHtml(res.result().toString());
 
-            context.response().putHeader("location", "/login.html").setStatusCode(302).end();
+                    resultsMail(email);
+
+                    context.response().putHeader("location", "/login.html").setStatusCode(302).end();
+                }else{
+                    context.fail(res.cause());
+                }
+            });
         });
 
         router.route("/logout").handler(context -> {
