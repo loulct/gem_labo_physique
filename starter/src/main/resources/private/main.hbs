@@ -32,22 +32,28 @@
         </ul>
     </div>
 
-    <div>
+    <div class="table available">
         <table>
-            <tr>
-                <th>{{column1}}</th>
-                <th>{{column2}}</th>
-                <th>{{column3}}</th>
-                <th>{{column4}}</th>
-            </tr>
-            {{#each table}}
-            <tr>
-                <td>{{this.idISEP}}</td>
-                <td>{{this.brand}}</td>
-                <td>{{this.model}}</td>
-                <td>{{this.desc}}</td>
-            </tr>
-            {{/each}}
+            <thead>
+                <tr>
+                    <th>{{column1}}</th>
+                    <th>{{column2}}</th>
+                    <th>{{column3}}</th>
+                    <th>{{column4}}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each table}}
+                    <tr>
+                        <td>{{this.idISEP}}</td>
+                        <td>{{this.brand}}</td>
+                        <td>{{this.model}}</td>
+                        <td>{{this.desc}}</td>
+                        <td><a href="/private/tools/{{this.idISEP}}">Emprunter</a></td>
+                    </tr>
+                {{/each}}
+            </tbody>
         </table>
         <p>Total : {{table.size}}</p>
     </div>

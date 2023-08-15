@@ -79,3 +79,64 @@ ul.gray li a:hover {
 #header{
   text-align: left;
 }
+
+table {
+  font-size: 12px;
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  border: 1px solid #ccc;
+}
+
+tbody {
+  display: table-row-group;
+  vertical-align: middle;
+  border-color: inherit;
+}
+
+tr {
+  display: table-row;
+  vertical-align: inherit;
+  border-color: inherit;
+}
+
+th {
+  padding-top: 11px;
+  padding-bottom: 11px;
+  background-color: #317dc0;
+  color: white;
+}
+
+td, th {
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(odd) {
+  background-color: #f2f2f2;
+}
+
+tr {
+  border-bottom: 1px solid #ddd;
+}
+
+tr:hover {background-color: #ddd;}
+
+.table{
+  margin:2%;
+}
+
+td{
+  border: 1px solid #ddd;
+}
+
+.table a {
+  text-align: center;
+  text-decoration: none;
+  color:black;
+}
+
+.table a:hover{
+  background-color: #148c16;
+  color: white;
+}

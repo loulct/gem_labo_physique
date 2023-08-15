@@ -224,6 +224,7 @@ public class Main extends AbstractVerticle{
         addTool(new JsonObject().put("idISEP", "001").put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("isAvailable", true).put("returnDate", null));
         addTool(new JsonObject().put("idISEP", "002").put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("isAvailable", true).put("returnDate", null));
         addTool(new JsonObject().put("idISEP", "003").put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", true).put("returnDate", null));
+        addTool(new JsonObject().put("idISEP", "004").put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", false).put("returnDate", null));
     }
 
     private void addTool(JsonObject tool){
