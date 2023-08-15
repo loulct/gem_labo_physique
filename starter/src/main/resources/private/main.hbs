@@ -26,13 +26,13 @@
 
     <div>
         <ul class="secondary-nav horizontal gray">
-            <li><a href="/private/tools" class="nav-link">Matériels disponibles</a></li>
-            <li><a href="#" class="nav-link">Matériels déjà empruntés</a></li>
+            <li><a id="default" class="nav-link" onclick="showTab(event, 'available')">Matériels disponibles</a></li>
+            <li><a class="nav-link" onclick="showTab(event, 'unavailable')">Matériels déjà empruntés</a></li>
             <li><a href="#" class="nav-link">Ajouter un matériel</a></li>
         </ul>
     </div>
 
-    <div class="table available">
+    <div id="available" class="table">
         <table>
             <thead>
                 <tr>
@@ -45,16 +45,68 @@
             </thead>
             <tbody>
                 {{#each table}}
-                    <tr>
-                        <td>{{this.idISEP}}</td>
-                        <td>{{this.brand}}</td>
-                        <td>{{this.model}}</td>
-                        <td>{{this.desc}}</td>
-                        <td><a href="/private/tools/{{this.idISEP}}">Emprunter</a></td>
-                    </tr>
+                    {{#if this.isAvailable}}
+                        <tr>
+                            <td>{{this.idISEP}}</td>
+                            <td>{{this.brand}}</td>
+                            <td>{{this.model}}</td>
+                            <td>{{this.desc}}</td>
+                            <td><a href="/private/tools/{{this.idISEP}}">Emprunter</a></td>
+                        </tr>          
+                    {{/if}}
                 {{/each}}
             </tbody>
         </table>
-        <p>Total : {{table.size}}</p>
     </div>
+
+    <div id="unavailable" class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>{{column1}}</th>
+                    <th>{{column2}}</th>
+                    <th>{{column3}}</th>
+                    <th>{{column4}}</th>
+                    <th>{{column6}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each table}}
+                    {{#if this.isAvailable}}
+
+                    {{else}}
+                        <tr>
+                            <td>{{this.idISEP}}</td>
+                            <td>{{this.brand}}</td>
+                            <td>{{this.model}}</td>
+                            <td>{{this.desc}}</td>
+                            <td>{{this.returnDate}}</td>
+                        </tr>
+                    {{/if}}
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+
+    <script type="text/javascript">
+        document.getElementById("default").click();
+
+        function showTab(evt, tabName) {
+            // Declare all variables
+            var i, table, navlink;
+
+            table = document.getElementsByClassName("table");
+            for (i = 0; i < table.length; i++) {
+                table[i].style.display = "none";
+            }
+
+            navlink = document.getElementsByClassName("nav-link");
+            for (i = 0; i < navlink.length; i++) {
+                navlink[i].className = navlink[i].className.replace(" active", "");
+            }
+
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+    </script>
 </body>
