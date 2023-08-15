@@ -140,3 +140,17 @@ td{
   background-color: #148c16;
   color: white;
 }
+
+.table{
+  animation: fadeEffect 1s;
+}
+
+@keyframes fadeEffect {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+
+.nav-link.active {
+  background-color: #317dc0;
+  color: white;
+}
