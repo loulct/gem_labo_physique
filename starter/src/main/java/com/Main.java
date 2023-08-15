@@ -54,9 +54,13 @@ public class Main extends AbstractVerticle{
 
         PropertyFileAuthentication authn = PropertyFileAuthentication.create(vertx, "vertx-users.properties");
 
-        router.route("/private/*").handler(RedirectAuthHandler.create(authn, "/login.html"));
+        router.route("/private/tools").handler(RedirectAuthHandler.create(authn, "/login.html"));
 
         router.route("/private/*").handler(StaticHandler.create("src/main/resources/private").setCachingEnabled(false));
+
+        router.errorHandler(404, routingContext -> {
+            routingContext.response().setStatusCode(302).putHeader("Location", "/private/tools").end();
+        });
 
         router.route("/private/tools/:toolID").handler(this::handleGetTool);
         router.route("/private/tools/add/:toolID").handler(this::handleAddTool);
@@ -132,7 +136,7 @@ public class Main extends AbstractVerticle{
         router.route("/logout").handler(context -> {
             context.clearUser();
 
-            context.response().putHeader("location", "/").setStatusCode(302).end();
+            context.response().putHeader("location", "/login.html").setStatusCode(302).end();
         });
 
         router.route().handler(StaticHandler.create("src/main/resources/webroot"));
