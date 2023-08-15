@@ -23,6 +23,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
+import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 
 import io.vertx.ext.mail.MailClient;
 import io.vertx.ext.mail.MailConfig;
@@ -45,6 +46,8 @@ public class Main extends AbstractVerticle{
         setUpInitialData();
 
         Router router = Router.router(vertx);
+
+        HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
         
         router.route().handler(BodyHandler.create());
         router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
@@ -57,9 +60,9 @@ public class Main extends AbstractVerticle{
 
         router.route("/private/tools/:toolID").handler(this::handleGetTool);
         router.route("/private/tools/:toolID").handler(this::handleAddTool);
-        router.route("/private/tools").handler(this::handleListTool);
+        router.route("/private/tools").handler(context -> handleListTool(context, engine));
 
-        router.route("/loginhandler").handler(FormLoginHandler.create(authn).setDirectLoggedInOKURL("/private/main.html"))
+        router.route("/loginhandler").handler(FormLoginHandler.create(authn).setDirectLoggedInOKURL("/private/tools"))
             .failureHandler(context -> {
                 context.response()
                     .putHeader("location", "/login.html")
@@ -190,10 +193,27 @@ public class Main extends AbstractVerticle{
         }
     }
 
-    private void handleListTool(RoutingContext context){
+    private void handleListTool(RoutingContext context, HandlebarsTemplateEngine engine){
         JsonArray arr = new JsonArray();
         tools.forEach((k, v) -> arr.add(v));
-        context.response().putHeader("content-type", "application/json").end(arr.encodePrettily());
+
+        JsonObject data = new JsonObject().put("column1", "id")
+            .put("column2", "Marque")
+            .put("column3", "Modèle")
+            .put("column4", "Description")
+            .put("column5", "Disponible?")
+            .put("column6", "Date de retour");
+
+        data.put("table", tools);
+
+        engine.render(data, "private/main.hbs", res -> {
+            if(res.succeeded()){
+                context.response().end(res.result());
+            }else{
+                context.fail(res.cause());
+            }
+        });
+        //context.response().putHeader("content-type", "application/json").end(arr.encodePrettily());
     }
 
     private void sendError(int statusCode, HttpServerResponse response){
@@ -204,6 +224,7 @@ public class Main extends AbstractVerticle{
         addTool(new JsonObject().put("idISEP", "001").put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("isAvailable", true).put("returnDate", null));
         addTool(new JsonObject().put("idISEP", "002").put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("isAvailable", true).put("returnDate", null));
         addTool(new JsonObject().put("idISEP", "003").put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", true).put("returnDate", null));
+        addTool(new JsonObject().put("idISEP", "004").put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", false).put("returnDate", null));
     }
 
     private void addTool(JsonObject tool){
