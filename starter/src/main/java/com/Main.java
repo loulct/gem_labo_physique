@@ -1,8 +1,8 @@
 package com.example.starter;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.TreeMap;
+import java.util.NavigableMap;
 import java.io.File;
 import java.util.Scanner;
 import java.nio.file.Path;
@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.lang.Integer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class Main extends AbstractVerticle{
         Launcher.executeCommand("run", Main.class.getName());
     }
 
-    private Map<String, JsonObject> tools = new HashMap<>();
+    private NavigableMap<String, JsonObject> tools = new TreeMap<>();
 
     @Override
     public void start() throws Exception {
@@ -63,7 +64,7 @@ public class Main extends AbstractVerticle{
         });
 
         router.route("/private/tools/:toolID").handler(context -> handleGetTool(context, engine));
-        router.route("/private/tools/add/:toolID").handler(this::handleAddTool);
+        router.route("/private/add").handler(this::handleAddTool);
         router.route("/private/tools").handler(context -> handleListTool(context, engine));
 
         router.route("/loginhandler").handler(FormLoginHandler.create(authn).setDirectLoggedInOKURL("/private/tools"))
@@ -198,19 +199,15 @@ public class Main extends AbstractVerticle{
     }
 
     private void handleAddTool(RoutingContext context){
-        String toolID = context.request().getParam("toolID");
+        String brand = context.request().getParam("brand");
+        String model = context.request().getParam("model");
+        String desc = context.request().getParam("desc");
+        Integer idISEP = Integer.parseInt(tools.lastEntry().getKey()) + 1;
+
+        addTool(new JsonObject().put("idISEP", idISEP).put("brand", brand).put("model", model).put("desc", desc).put("isAvailable", true).put("returnDate", null));
+
         HttpServerResponse response = context.response();
-        if(toolID == null){
-            sendError(400, response);
-        }else{
-            JsonObject tool = context.getBodyAsJson();
-            if(tool == null){
-                sendError(400, response);
-            }else{
-                tools.put(toolID, tool);
-                response.end();
-            }
-        }
+        response.putHeader("location", "/private/tools").setStatusCode(302).end();
     }
 
     private void handleListTool(RoutingContext context, HandlebarsTemplateEngine engine){
@@ -240,10 +237,10 @@ public class Main extends AbstractVerticle{
     }
 
     private void setUpInitialData(){
-        addTool(new JsonObject().put("idISEP", "001").put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("isAvailable", true).put("returnDate", null));
-        addTool(new JsonObject().put("idISEP", "002").put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("isAvailable", true).put("returnDate", null));
-        addTool(new JsonObject().put("idISEP", "003").put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", true).put("returnDate", null));
-        addTool(new JsonObject().put("idISEP", "004").put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", false).put("returnDate", "test"));
+        addTool(new JsonObject().put("idISEP", 1).put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("isAvailable", true).put("returnDate", null));
+        addTool(new JsonObject().put("idISEP", 2).put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("isAvailable", true).put("returnDate", null));
+        addTool(new JsonObject().put("idISEP", 3).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", true).put("returnDate", null));
+        addTool(new JsonObject().put("idISEP", 4).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", false).put("returnDate", "test"));
     }
 
     private void addTool(JsonObject tool){
