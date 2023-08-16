@@ -1,0 +1,42 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="icon" type="image/x-icon" href="./styles/images/favicon.ico">
+<body>
+    <div id="wrap">
+        <div id="header">
+            <h1>GEM LABO PHYSIQUE</h1>
+        </div>
+        <main id="handleaddtoolcontent" class="container">
+            <div class="card">
+                <form action="/private/add" class="handleaddtool" id="handleaddtool" method="post">
+                    <div class="form">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><label for="brand">Marque</label></span>
+                            </div>
+                            <select name="brand" id="brand" class="form-control" required>
+                                <option value="Steinberg">Steinberg</option>
+                                <option value="Stamos Soldering">Stamos Soldering</option>
+                            </select>
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><label for="model">Modèle</label></span>
+                            </div>
+                            <input id="model" name="model" type="text" class="form-control" placeholder="S-LS-28" required/>
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><label for="desc">Description</label></span>
+                            </div>
+                            <input id="desc" name="desc" type="text" class="form-control" placeholder="Centrifugeuse" required/>
+                        </div>
+                        <button type="submit" class="btn" id="btn">
+                            <span class="fa fa-sign-in"></span>
+                            <span trspan="addtool-span">Ajouter le matériel</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    <div>
+</body>
