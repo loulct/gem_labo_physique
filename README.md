@@ -2,25 +2,29 @@
 
 ## TODO
 ### Priority 1
-- add available_tools page (GET route)
-- add unavailable_tools page (as another tab) (GET route)
-- add add_tool page (POST route)
+### User/Admin & Session
+- signup form -> add user to vertx-properties when post (don't know if vertx-properties is dynamic so maybe look for others options like jsonObjects)
+- timeout session (look at SessionHandlers)
+- handleGetTool -> use session for userEmail
+- check if forgotpassword email is in "database"
+- admin email parse list to email setUp (every admin account in Cc rather than admin@gem-labo.com)
+
 
 ### Priority 2
-- sends email when available_tools object becomes unvailable (to user, admin in Cc)
+### Date
 - if date_expired = true -> sends email to user (admin Cc)
+- if return date expires -> date in red in table
+
 
 ### Priority 3
-- signup form -> add user to vertx-properties when post (don't know if vertx-properties is dynamic so maybe look for others options like jsonObjects) || (maybe use a class User or something and use class Object for signup and login)
-- check in forgotpassword page if email is mapped to an existing user otherwise do not send an password retrieving email
-- timeout session (look at SessionHandlers)
+- add stats (frequency of use)
+- add more tests verticles
+
 
 ### Priority 4
+### Minor changes
 - improve java structure
-- add stats (frequency of use)
-
-### Priority 5
-- optimise css files (main.css)
+- optimise css files (main.css) + charte graphique homogénisation
 - improve password regex
+- clear password in browser console !!!
 - update README.md (how to install & how to use)
-- add more tests verticles
