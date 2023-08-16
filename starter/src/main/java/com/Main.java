@@ -62,7 +62,7 @@ public class Main extends AbstractVerticle{
             routingContext.response().setStatusCode(302).putHeader("Location", "/private/tools").end();
         });
 
-        router.route("/private/tools/:toolID").handler(this::handleGetTool);
+        router.route("/private/tools/:toolID").handler(context -> handleGetTool(context, engine));
         router.route("/private/tools/add/:toolID").handler(this::handleAddTool);
         router.route("/private/tools").handler(context -> handleListTool(context, engine));
 
@@ -158,7 +158,7 @@ public class Main extends AbstractVerticle{
         });
     }
 
-    private void handleGetTool(RoutingContext context){
+    private void handleGetTool(RoutingContext context, HandlebarsTemplateEngine engine){
         String toolID = context.request().getParam("toolID");
         HttpServerResponse response = context.response();
         if(toolID == null){
@@ -169,7 +169,30 @@ public class Main extends AbstractVerticle{
                 sendError(404, response);
             }else{
                 tool.put("isAvailable", false).put("returnDate", "test");
-                response.putHeader("location", "/private/tools").setStatusCode(302).end();
+
+                //String userEmail = context.request().getParam("username").toLowerCase();
+
+                JsonObject data = new JsonObject().put("tool", tool);
+
+                engine.render(data, "private/borrowed.hbs", res -> {
+                    if(res.succeeded()){
+                        MailMessage email = new MailMessage()
+                            .setFrom("gem-labo-physique@gem-labo.com")
+                            .setTo(Arrays.asList(
+                                //userEmail,
+                                "admin@gem-labo.com"))
+                            .setBounceAddress("gem-labo-physique@gem-labo.com")
+                            .setSubject("GEM LABO PHYSIQUE : Matériel emprunté !")
+                            .setHtml(res.result().toString());
+
+                        resultsMail(email);
+
+                        response.putHeader("location", "/private/tools").setStatusCode(302).end();
+
+                    }else{
+                        context.fail(res.cause());
+                    }
+                });
             }
         }
     }
