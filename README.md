@@ -3,11 +3,13 @@
 ## TODO
 ### Priority 1
 ### User/Admin & Session
-- signup form -> add user to vertx-properties when post (don't know if vertx-properties is dynamic so maybe look for others options like jsonObjects)
+- every admin account in Cc rather than admin@gem-labo.com (get all account with admin rool from property file)
+- admin private/admin/tool view
+- deleteTool admin route
+- validate admin route + email sent to user
+- unborrow user route ("return tool")
+- add alert message popput (see todo in code) 
 - timeout session (look at SessionHandlers)
-- handleGetTool -> use session for userEmail
-- check if forgotpassword email is in "database"
-- admin email parse list to email setUp (every admin account in Cc rather than admin@gem-labo.com)
 
 
 ### Priority 2
