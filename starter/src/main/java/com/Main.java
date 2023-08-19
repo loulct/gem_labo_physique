@@ -12,6 +12,13 @@ import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.lang.Integer;
+import java.util.Properties;
+import java.io.OutputStream;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Map;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,6 +31,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 
 import io.vertx.ext.mail.MailClient;
@@ -83,24 +91,43 @@ public class Main extends AbstractVerticle{
 
             JsonObject data = new JsonObject().put("username", userEmail).put("password", uuid);
 
-            engine.render(data, "private/password.hbs", res -> {
-                if(res.succeeded()){
-                    MailMessage email = new MailMessage()
-                        .setFrom("gem-labo-physique@gem-labo.com")
-                        .setTo(Arrays.asList(
-                            userEmail,
-                            "admin@gem-labo.com"))
-                        .setBounceAddress("gem-labo-physique@gem-labo.com")
-                        .setSubject("GEM LABO PHYSIQUE : Mot de passe mis à jour")
-                        .setHtml(res.result().toString());
+            Properties properties = new Properties();
+            try{
+                properties.load(new FileInputStream("src/main/resources/vertx-users.properties"));
+                if(properties.getProperty("user." + userEmail) != null){
+                    properties.put("user." + userEmail, uuid + ",user");
+                    FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
+                    properties.store(outputStream, null);
 
-                    resultsMail(email);
+                    engine.render(data, "private/password.hbs", res -> {
+                        if(res.succeeded()){
+                            MailMessage email = new MailMessage()
+                                .setFrom("gem-labo-physique@gem-labo.com")
+                                .setTo(Arrays.asList(
+                                    userEmail,
+                                    "admin@gem-labo.com"))
+                                .setBounceAddress("gem-labo-physique@gem-labo.com")
+                                .setSubject("GEM LABO PHYSIQUE : Mot de passe mis à jour")
+                                .setHtml(res.result().toString());
 
-                    context.response().putHeader("location", "/login.html").setStatusCode(302).end();
+                            resultsMail(email);
+
+                            context.response().putHeader("location", "/login.html").setStatusCode(302).end();
+                        }else{
+                            context.fail(res.cause());
+                        }
+                    });
                 }else{
-                    context.fail(res.cause());
+                    System.out.println("Ce compte n'existe pas");
+                    context.response()
+                        .putHeader("location", "/forgotpassword.html")
+                        .setStatusCode(302)
+                        .end();
+                    // TODO add alert message in html
                 }
-            });
+            }catch(IOException e){
+                System.out.println(e);
+            }
         });
 
         router.route("/signuphandler").handler(context -> {
@@ -114,24 +141,43 @@ public class Main extends AbstractVerticle{
 
             JsonObject data = new JsonObject().put("username", userEmail).put("password", uuid);
 
-            engine.render(data, "private/setup.hbs", res -> {
-                if(res.succeeded()){
-                    MailMessage email = new MailMessage()
-                        .setFrom("gem-labo-physique@gem-labo.com")
-                        .setTo(Arrays.asList(
-                            userEmail,
-                            "admin@gem-labo.com"))
-                        .setBounceAddress("gem-labo-physique@gem-labo.com")
-                        .setSubject("GEM LABO PHYSIQUE : Votre compte a été créé")
-                        .setHtml(res.result().toString());
+            Properties properties = new Properties();
+            try{
+                properties.load(new FileInputStream("src/main/resources/vertx-users.properties"));
+                if(properties.getProperty("user." + userEmail) == null){
+                    properties.put("user." + userEmail, uuid + ",user");
+                    FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
+                    properties.store(outputStream, null);
 
-                    resultsMail(email);
-
-                    context.response().putHeader("location", "/login.html").setStatusCode(302).end();
+                    engine.render(data, "private/setup.hbs", res -> {
+                        if(res.succeeded()){
+                            MailMessage email = new MailMessage()
+                                .setFrom("gem-labo-physique@gem-labo.com")
+                                .setTo(Arrays.asList(
+                                    userEmail,
+                                    "admin@gem-labo.com"))
+                                .setBounceAddress("gem-labo-physique@gem-labo.com")
+                                .setSubject("GEM LABO PHYSIQUE : Votre compte a été créé")
+                                .setHtml(res.result().toString());
+        
+                            resultsMail(email);
+        
+                            context.response().putHeader("location", "/login.html").setStatusCode(302).end();
+                        }else{
+                            context.fail(res.cause());
+                        }
+                    });
                 }else{
-                    context.fail(res.cause());
+                    System.out.println("Ce compte existe déjà !");
+                    context.response()
+                        .putHeader("location", "/signup.html")
+                        .setStatusCode(302)
+                        .end();
+                    // TODO add alert message in html
                 }
-            });
+            }catch(IOException e){
+                System.out.println(e);
+            }
         });
 
         router.route("/logout").handler(context -> {
@@ -169,9 +215,9 @@ public class Main extends AbstractVerticle{
             if(tool == null){
                 sendError(404, response);
             }else{
-                tool.put("isAvailable", false).put("returnDate", "test");
+                String username = context.user().principal().getString("username");
 
-                //String userEmail = context.request().getParam("username").toLowerCase();
+                tool.put("isAvailable", false).put("owner", username).put("returnDate", "test");
 
                 JsonObject data = new JsonObject().put("tool", tool);
 
@@ -180,7 +226,7 @@ public class Main extends AbstractVerticle{
                         MailMessage email = new MailMessage()
                             .setFrom("gem-labo-physique@gem-labo.com")
                             .setTo(Arrays.asList(
-                                //userEmail,
+                                username,
                                 "admin@gem-labo.com"))
                             .setBounceAddress("gem-labo-physique@gem-labo.com")
                             .setSubject("GEM LABO PHYSIQUE : Matériel emprunté !")
@@ -202,26 +248,33 @@ public class Main extends AbstractVerticle{
         String brand = context.request().getParam("brand");
         String model = context.request().getParam("model");
         String desc = context.request().getParam("desc");
-        Integer idISEP = Integer.parseInt(tools.lastEntry().getKey()) + 1;
+        String idISEP = context.request().getParam("idISEP");
+        Integer uid = Integer.parseInt(tools.lastEntry().getKey()) + 1;
 
-        addTool(new JsonObject().put("idISEP", idISEP).put("brand", brand).put("model", model).put("desc", desc).put("isAvailable", true).put("returnDate", null));
+        addTool(new JsonObject().put("uid", uid).put("brand", brand).put("model", model).put("desc", desc).put("idISEP", idISEP).put("isAvailable", true).put("owner", null).put("returnDate", null));
 
         HttpServerResponse response = context.response();
         response.putHeader("location", "/private/tools").setStatusCode(302).end();
     }
 
     private void handleListTool(RoutingContext context, HandlebarsTemplateEngine engine){
-        JsonArray arr = new JsonArray();
-        tools.forEach((k, v) -> arr.add(v));
-
         JsonObject data = new JsonObject().put("column1", "id")
             .put("column2", "Marque")
             .put("column3", "Modèle")
             .put("column4", "Description")
-            .put("column5", "Disponible?")
-            .put("column6", "Date de retour");
+            .put("column5", "Identification ISEP")
+            .put("column6", "Disponible ?")
+            .put("column7", "Emprunté par")
+            .put("column8", "Date de retour");
 
-        data.put("table", tools);
+
+        Map<String, JsonObject> arr = tools.entrySet().stream()
+            .filter(e -> (e.getValue().getString("owner") == null || e.getValue().getString("owner") == context.user().principal().getString("username")))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+        data.put("table", arr);
+
+        data.put("user", context.user().principal().getString("username"));
 
         engine.render(data, "private/main.hbs", res -> {
             if(res.succeeded()){
@@ -237,13 +290,13 @@ public class Main extends AbstractVerticle{
     }
 
     private void setUpInitialData(){
-        addTool(new JsonObject().put("idISEP", 1).put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("isAvailable", true).put("returnDate", null));
-        addTool(new JsonObject().put("idISEP", 2).put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("isAvailable", true).put("returnDate", null));
-        addTool(new JsonObject().put("idISEP", 3).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", true).put("returnDate", null));
-        addTool(new JsonObject().put("idISEP", 4).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", false).put("returnDate", "test"));
+        addTool(new JsonObject().put("uid", 1).put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("idISEP", "C1").put("isAvailable", true).put("owner", null).put("returnDate", null));
+        addTool(new JsonObject().put("uid", 2).put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("idISEP", "Alim1").put("isAvailable", true).put("owner", null).put("returnDate", null));
+        addTool(new JsonObject().put("uid", 3).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("idISEP", "AgitElec1").put("isAvailable", true).put("owner", null).put("returnDate", null));
+        addTool(new JsonObject().put("uid", 4).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("idISEP", "AgitElec2").put("isAvailable", false).put("owner", null).put("returnDate", "test"));
     }
 
     private void addTool(JsonObject tool){
-        tools.put(tool.getString("idISEP"), tool);
+        tools.put(tool.getString("uid"), tool);
     }
 }
