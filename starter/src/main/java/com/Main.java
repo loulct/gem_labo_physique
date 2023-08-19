@@ -12,6 +12,10 @@ import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.lang.Integer;
+import java.util.Properties;
+import java.io.OutputStream;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,6 +28,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 
 import io.vertx.ext.mail.MailClient;
@@ -83,24 +88,43 @@ public class Main extends AbstractVerticle{
 
             JsonObject data = new JsonObject().put("username", userEmail).put("password", uuid);
 
-            engine.render(data, "private/password.hbs", res -> {
-                if(res.succeeded()){
-                    MailMessage email = new MailMessage()
-                        .setFrom("gem-labo-physique@gem-labo.com")
-                        .setTo(Arrays.asList(
-                            userEmail,
-                            "admin@gem-labo.com"))
-                        .setBounceAddress("gem-labo-physique@gem-labo.com")
-                        .setSubject("GEM LABO PHYSIQUE : Mot de passe mis à jour")
-                        .setHtml(res.result().toString());
+            Properties properties = new Properties();
+            try{
+                properties.load(new FileInputStream("src/main/resources/vertx-users.properties"));
+                if(properties.getProperty("user." + userEmail) != null){
+                    properties.put("user." + userEmail, uuid + ",user");
+                    FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
+                    properties.store(outputStream, null);
 
-                    resultsMail(email);
+                    engine.render(data, "private/password.hbs", res -> {
+                        if(res.succeeded()){
+                            MailMessage email = new MailMessage()
+                                .setFrom("gem-labo-physique@gem-labo.com")
+                                .setTo(Arrays.asList(
+                                    userEmail,
+                                    "admin@gem-labo.com"))
+                                .setBounceAddress("gem-labo-physique@gem-labo.com")
+                                .setSubject("GEM LABO PHYSIQUE : Mot de passe mis à jour")
+                                .setHtml(res.result().toString());
 
-                    context.response().putHeader("location", "/login.html").setStatusCode(302).end();
+                            resultsMail(email);
+
+                            context.response().putHeader("location", "/login.html").setStatusCode(302).end();
+                        }else{
+                            context.fail(res.cause());
+                        }
+                    });
                 }else{
-                    context.fail(res.cause());
+                    System.out.println("Ce compte n'existe pas");
+                    context.response()
+                        .putHeader("location", "/forgotpassword.html")
+                        .setStatusCode(302)
+                        .end();
+                    // TODO add alert message in html
                 }
-            });
+            }catch(IOException e){
+                System.out.println(e);
+            }
         });
 
         router.route("/signuphandler").handler(context -> {
@@ -114,24 +138,43 @@ public class Main extends AbstractVerticle{
 
             JsonObject data = new JsonObject().put("username", userEmail).put("password", uuid);
 
-            engine.render(data, "private/setup.hbs", res -> {
-                if(res.succeeded()){
-                    MailMessage email = new MailMessage()
-                        .setFrom("gem-labo-physique@gem-labo.com")
-                        .setTo(Arrays.asList(
-                            userEmail,
-                            "admin@gem-labo.com"))
-                        .setBounceAddress("gem-labo-physique@gem-labo.com")
-                        .setSubject("GEM LABO PHYSIQUE : Votre compte a été créé")
-                        .setHtml(res.result().toString());
+            Properties properties = new Properties();
+            try{
+                properties.load(new FileInputStream("src/main/resources/vertx-users.properties"));
+                if(properties.getProperty("user." + userEmail) == null){
+                    properties.put("user." + userEmail, uuid + ",user");
+                    FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
+                    properties.store(outputStream, null);
 
-                    resultsMail(email);
-
-                    context.response().putHeader("location", "/login.html").setStatusCode(302).end();
+                    engine.render(data, "private/setup.hbs", res -> {
+                        if(res.succeeded()){
+                            MailMessage email = new MailMessage()
+                                .setFrom("gem-labo-physique@gem-labo.com")
+                                .setTo(Arrays.asList(
+                                    userEmail,
+                                    "admin@gem-labo.com"))
+                                .setBounceAddress("gem-labo-physique@gem-labo.com")
+                                .setSubject("GEM LABO PHYSIQUE : Votre compte a été créé")
+                                .setHtml(res.result().toString());
+        
+                            resultsMail(email);
+        
+                            context.response().putHeader("location", "/login.html").setStatusCode(302).end();
+                        }else{
+                            context.fail(res.cause());
+                        }
+                    });
                 }else{
-                    context.fail(res.cause());
+                    System.out.println("Ce compte existe déjà !");
+                    context.response()
+                        .putHeader("location", "/signup.html")
+                        .setStatusCode(302)
+                        .end();
+                    // TODO add alert message in html
                 }
-            });
+            }catch(IOException e){
+                System.out.println(e);
+            }
         });
 
         router.route("/logout").handler(context -> {
