@@ -16,6 +16,9 @@ import java.util.Properties;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Map;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -212,9 +215,9 @@ public class Main extends AbstractVerticle{
             if(tool == null){
                 sendError(404, response);
             }else{
-                tool.put("isAvailable", false).put("returnDate", "test");
+                String username = context.user().principal().getString("username");
 
-                //String userEmail = context.request().getParam("username").toLowerCase();
+                tool.put("isAvailable", false).put("owner", username).put("returnDate", "test");
 
                 JsonObject data = new JsonObject().put("tool", tool);
 
@@ -223,7 +226,7 @@ public class Main extends AbstractVerticle{
                         MailMessage email = new MailMessage()
                             .setFrom("gem-labo-physique@gem-labo.com")
                             .setTo(Arrays.asList(
-                                //userEmail,
+                                username,
                                 "admin@gem-labo.com"))
                             .setBounceAddress("gem-labo-physique@gem-labo.com")
                             .setSubject("GEM LABO PHYSIQUE : Matériel emprunté !")
@@ -247,24 +250,29 @@ public class Main extends AbstractVerticle{
         String desc = context.request().getParam("desc");
         Integer idISEP = Integer.parseInt(tools.lastEntry().getKey()) + 1;
 
-        addTool(new JsonObject().put("idISEP", idISEP).put("brand", brand).put("model", model).put("desc", desc).put("isAvailable", true).put("returnDate", null));
+        addTool(new JsonObject().put("idISEP", idISEP).put("brand", brand).put("model", model).put("desc", desc).put("isAvailable", true).put("owner", context.user().principal().getString("username")).put("returnDate", null));
 
         HttpServerResponse response = context.response();
         response.putHeader("location", "/private/tools").setStatusCode(302).end();
     }
 
     private void handleListTool(RoutingContext context, HandlebarsTemplateEngine engine){
-        JsonArray arr = new JsonArray();
-        tools.forEach((k, v) -> arr.add(v));
-
         JsonObject data = new JsonObject().put("column1", "id")
             .put("column2", "Marque")
             .put("column3", "Modèle")
             .put("column4", "Description")
             .put("column5", "Disponible?")
-            .put("column6", "Date de retour");
+            .put("column6", "Emprunté par")
+            .put("column7", "Date de retour");
 
-        data.put("table", tools);
+
+        Map<String, JsonObject> arr = tools.entrySet().stream()
+            .filter(e -> (e.getValue().getString("owner") == null || e.getValue().getString("owner") == context.user().principal().getString("username")))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+        data.put("table", arr);
+
+        data.put("user", context.user().principal().getString("username"));
 
         engine.render(data, "private/main.hbs", res -> {
             if(res.succeeded()){
@@ -280,13 +288,14 @@ public class Main extends AbstractVerticle{
     }
 
     private void setUpInitialData(){
-        addTool(new JsonObject().put("idISEP", 1).put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("isAvailable", true).put("returnDate", null));
-        addTool(new JsonObject().put("idISEP", 2).put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("isAvailable", true).put("returnDate", null));
-        addTool(new JsonObject().put("idISEP", 3).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", true).put("returnDate", null));
-        addTool(new JsonObject().put("idISEP", 4).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", false).put("returnDate", "test"));
+        addTool(new JsonObject().put("idISEP", 1).put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("isAvailable", true).put("owner", null).put("returnDate", null));
+        addTool(new JsonObject().put("idISEP", 2).put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("isAvailable", true).put("owner", null).put("returnDate", null));
+        addTool(new JsonObject().put("idISEP", 3).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", true).put("owner", null).put("returnDate", null));
+        addTool(new JsonObject().put("idISEP", 4).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", false).put("owner", null).put("returnDate", "test"));
     }
 
     private void addTool(JsonObject tool){
         tools.put(tool.getString("idISEP"), tool);
+        System.out.println(tool);
     }
 }
