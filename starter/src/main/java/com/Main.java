@@ -248,9 +248,10 @@ public class Main extends AbstractVerticle{
         String brand = context.request().getParam("brand");
         String model = context.request().getParam("model");
         String desc = context.request().getParam("desc");
-        Integer idISEP = Integer.parseInt(tools.lastEntry().getKey()) + 1;
+        String idISEP = context.request().getParam("idISEP");
+        Integer uid = Integer.parseInt(tools.lastEntry().getKey()) + 1;
 
-        addTool(new JsonObject().put("idISEP", idISEP).put("brand", brand).put("model", model).put("desc", desc).put("isAvailable", true).put("owner", context.user().principal().getString("username")).put("returnDate", null));
+        addTool(new JsonObject().put("uid", uid).put("brand", brand).put("model", model).put("desc", desc).put("idISEP", idISEP).put("isAvailable", true).put("owner", null).put("returnDate", null));
 
         HttpServerResponse response = context.response();
         response.putHeader("location", "/private/tools").setStatusCode(302).end();
@@ -261,9 +262,10 @@ public class Main extends AbstractVerticle{
             .put("column2", "Marque")
             .put("column3", "Modèle")
             .put("column4", "Description")
-            .put("column5", "Disponible?")
-            .put("column6", "Emprunté par")
-            .put("column7", "Date de retour");
+            .put("column5", "Identification ISEP")
+            .put("column6", "Disponible ?")
+            .put("column7", "Emprunté par")
+            .put("column8", "Date de retour");
 
 
         Map<String, JsonObject> arr = tools.entrySet().stream()
@@ -288,14 +290,13 @@ public class Main extends AbstractVerticle{
     }
 
     private void setUpInitialData(){
-        addTool(new JsonObject().put("idISEP", 1).put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("isAvailable", true).put("owner", null).put("returnDate", null));
-        addTool(new JsonObject().put("idISEP", 2).put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("isAvailable", true).put("owner", null).put("returnDate", null));
-        addTool(new JsonObject().put("idISEP", 3).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", true).put("owner", null).put("returnDate", null));
-        addTool(new JsonObject().put("idISEP", 4).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("isAvailable", false).put("owner", null).put("returnDate", "test"));
+        addTool(new JsonObject().put("uid", 1).put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("idISEP", "C1").put("isAvailable", true).put("owner", null).put("returnDate", null));
+        addTool(new JsonObject().put("uid", 2).put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("idISEP", "Alim1").put("isAvailable", true).put("owner", null).put("returnDate", null));
+        addTool(new JsonObject().put("uid", 3).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("idISEP", "AgitElec1").put("isAvailable", true).put("owner", null).put("returnDate", null));
+        addTool(new JsonObject().put("uid", 4).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("idISEP", "AgitElec2").put("isAvailable", false).put("owner", null).put("returnDate", "test"));
     }
 
     private void addTool(JsonObject tool){
-        tools.put(tool.getString("idISEP"), tool);
-        System.out.println(tool);
+        tools.put(tool.getString("uid"), tool);
     }
 }
