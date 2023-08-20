@@ -31,6 +31,9 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
+import io.vertx.ext.auth.properties.PropertyFileAuthorization;
+//import io.vertx.rxjava3.ext.auth.authorization.AuthorizationProvider;
+import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 
@@ -63,9 +66,48 @@ public class Main extends AbstractVerticle{
 
         PropertyFileAuthentication authn = PropertyFileAuthentication.create(vertx, "vertx-users.properties");
 
-        router.route("/private/tools").handler(RedirectAuthHandler.create(authn, "/login.html"));
+        PropertyFileAuthorization authorizationProvider = PropertyFileAuthorization.create(vertx, "vertx-roles.properties");
+
+        router.route("/private/*").handler(RedirectAuthHandler.create(authn, "/login.html"));
 
         router.route("/private/*").handler(StaticHandler.create("src/main/resources/private").setCachingEnabled(false));
+
+        router.route("/private/admin").handler(context -> {
+            if(context.user() == null){
+                context.response().setStatusCode(302).putHeader("Location", "/private/tools").end();
+            }
+            authorizationProvider.getAuthorizations(context.user()).onSuccess(v -> {
+                if (RoleBasedAuthorization.create("admin").match(context.user())){
+                    System.out.println("User is admin");
+                    JsonObject data = new JsonObject().put("column1", "id")
+                        .put("column2", "Marque")
+                        .put("column3", "Modèle")
+                        .put("column4", "Description")
+                        .put("column5", "Identification ISEP")
+                        .put("column6", "Disponible ?")
+                        .put("column7", "Emprunté par")
+                        .put("column8", "Date de retour");
+
+                    data.put("table", tools);
+
+                    data.put("user", context.user().principal().getString("username"));
+
+                    engine.render(data, "private/admin.hbs", res -> {
+                        if(res.succeeded()){
+                            context.response().end(res.result());
+                        }else{
+                            context.fail(res.cause());
+                        }
+                    });
+                }else{
+                    System.out.println("User isn't admin");
+                    context.response().setStatusCode(302).putHeader("Location", "/private/tools").end();
+                }
+            }).onFailure(err -> {
+                System.out.println("User isn't listed in PropertyFileAuthorization file");
+                context.response().setStatusCode(302).putHeader("Location", "/private/tools").end();
+            });
+        });
 
         router.errorHandler(404, routingContext -> {
             routingContext.response().setStatusCode(302).putHeader("Location", "/private/tools").end();
@@ -95,7 +137,7 @@ public class Main extends AbstractVerticle{
             try{
                 properties.load(new FileInputStream("src/main/resources/vertx-users.properties"));
                 if(properties.getProperty("user." + userEmail) != null){
-                    properties.put("user." + userEmail, uuid + ",user");
+                    properties.put("user." + userEmail, uuid);
                     FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
                     properties.store(outputStream, null);
 
@@ -145,7 +187,7 @@ public class Main extends AbstractVerticle{
             try{
                 properties.load(new FileInputStream("src/main/resources/vertx-users.properties"));
                 if(properties.getProperty("user." + userEmail) == null){
-                    properties.put("user." + userEmail, uuid + ",user");
+                    properties.put("user." + userEmail, uuid);
                     FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
                     properties.store(outputStream, null);
 

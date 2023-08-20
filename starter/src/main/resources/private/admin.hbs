@@ -1,0 +1,132 @@
+<head>
+    <title>GEM LABO PHYSIQUE</title>    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+    <meta http-equiv="Pragma" content="no-cache"/>
+    <meta http-equiv="Expires" content="0"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="icon" type="image/x-icon" href="./styles/images/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="./styles/main.css" as="main">
+</head>
+<body>
+    <div id="page-wrapper">
+        <div class="horizontal gray">
+            <div class="dropdown">
+                <button class="dropbtn">{{user}}</button>
+                <div class="dropdown-content">
+                    <a href="/logout">Déconnexion</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="header">
+        <h1>Bienvenue {{user}} !</h1>
+    </div>
+
+    <div>
+        <ul class="secondary-nav horizontal gray">
+            <li><a id="default" class="nav-link" onclick="showTab(event, 'available')">Matériels disponibles</a></li>
+            <li><a class="nav-link" onclick="showTab(event, 'unavailable')">Matériels empruntés</a></li>
+            <li><a class="nav-link" onclick="showTab(event, 'toValidate')">Matériel en attente de validation</a></li>
+        </ul>
+    </div>
+
+    <div id="available" class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>{{column1}}</th>
+                    <th>{{column2}}</th>
+                    <th>{{column3}}</th>
+                    <th>{{column4}}</th>
+                    <th>{{column5}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each table}}
+                    {{#if this.isAvailable}}
+                        <tr>
+                            <td>{{this.uid}}</td>
+                            <td>{{this.brand}}</td>
+                            <td>{{this.model}}</td>
+                            <td>{{this.desc}}</td>
+                            <td>{{this.idISEP}}</td>
+                        </tr>          
+                    {{/if}}
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="unavailable" class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>{{column1}}</th>
+                    <th>{{column2}}</th>
+                    <th>{{column3}}</th>
+                    <th>{{column4}}</th>
+                    <th>{{column5}}</th>
+                    <th>{{column7}}</th>
+                    <th>{{column8}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each table}}
+                    {{#if this.isAvailable}}
+
+                    {{else}}
+                        <tr>
+                            <td>{{this.uid}}</td>
+                            <td>{{this.brand}}</td>
+                            <td>{{this.model}}</td>
+                            <td>{{this.desc}}</td>
+                            <td>{{this.idISEP}}</td>
+                            <td>{{this.owner}}</td>
+                            <td>{{this.returnDate}}</td>
+                        </tr>
+                    {{/if}}
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="toValidate" class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>{{column1}}</th>
+                    <th>{{column2}}</th>
+                    <th>{{column3}}</th>
+                    <th>{{column4}}</th>
+                    <th>{{column5}}</th>
+                    <th>{{column7}}</th>
+                    <th>{{column8}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each table}}
+                    {{#if this.isAvailable}}
+
+                    {{else}}
+                        <tr>
+                            <td>{{this.uid}}</td>
+                            <td>{{this.brand}}</td>
+                            <td>{{this.model}}</td>
+                            <td>{{this.desc}}</td>
+                            <td>{{this.idISEP}}</td>
+                            <td>{{this.returnDate}}</td>
+                        </tr>
+                    {{/if}}
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+    <script>
+        window.addEventListener('load', function(e){
+            document.getElementById("default").click();
+        });
+    </script>
+    <script type="module" src="./scripts/showTab.js"></script>
+</body>
