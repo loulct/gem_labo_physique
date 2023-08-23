@@ -79,15 +79,19 @@
                     {{#if this.isAvailable}}
 
                     {{else}}
-                        <tr>
-                            <td>{{this.uid}}</td>
-                            <td>{{this.brand}}</td>
-                            <td>{{this.model}}</td>
-                            <td>{{this.desc}}</td>
-                            <td>{{this.idISEP}}</td>
-                            <td>{{this.returnDate}}</td>
-                            <td><a href="#">Rendre le matériel</a></td>
-                        </tr>
+                        {{#if this.toValidate}}
+
+                        {{else}}
+                            <tr>
+                                <td>{{this.uid}}</td>
+                                <td>{{this.brand}}</td>
+                                <td>{{this.model}}</td>
+                                <td>{{this.desc}}</td>
+                                <td>{{this.idISEP}}</td>
+                                <td>{{this.returnDate}}</td>
+                                <td><a href="/private/unborrow/{{this.uid}}">Rendre le matériel</a></td>
+                            </tr>
+                        {{/if}}
                     {{/if}}
                 {{/each}}
             </tbody>
