@@ -53,7 +53,7 @@
                             <td>{{this.model}}</td>
                             <td>{{this.desc}}</td>
                             <td>{{this.idISEP}}</td>
-                            <td id="delTool"><a href="/private/del/{{this.uid}}">Supprimer</a></td>
+                            <td id="delTool"><a href="/private/admin/del/{{this.uid}}">Supprimer</a></td>
                         </tr>          
                     {{/if}}
                 {{/each}}
@@ -79,15 +79,19 @@
                     {{#if this.isAvailable}}
 
                     {{else}}
-                        <tr>
-                            <td>{{this.uid}}</td>
-                            <td>{{this.brand}}</td>
-                            <td>{{this.model}}</td>
-                            <td>{{this.desc}}</td>
-                            <td>{{this.idISEP}}</td>
-                            <td>{{this.owner}}</td>
-                            <td>{{this.returnDate}}</td>
-                        </tr>
+                        {{#if this.toValidate}}
+
+                        {{else}}
+                            <tr>
+                                <td>{{this.uid}}</td>
+                                <td>{{this.brand}}</td>
+                                <td>{{this.model}}</td>
+                                <td>{{this.desc}}</td>
+                                <td>{{this.idISEP}}</td>
+                                <td>{{this.owner}}</td>
+                                <td>{{this.returnDate}}</td>
+                            </tr>
+                        {{/if}}
                     {{/if}}
                 {{/each}}
             </tbody>
@@ -105,20 +109,21 @@
                     <th>{{column5}}</th>
                     <th>{{column7}}</th>
                     <th>{{column8}}</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 {{#each table}}
-                    {{#if this.isAvailable}}
-
-                    {{else}}
+                    {{#if this.toValidate}}
                         <tr>
                             <td>{{this.uid}}</td>
                             <td>{{this.brand}}</td>
                             <td>{{this.model}}</td>
                             <td>{{this.desc}}</td>
                             <td>{{this.idISEP}}</td>
+                            <td>{{this.owner}}</td>
                             <td>{{this.returnDate}}</td>
+                            <td><a href="/private/admin/validate/{{this.uid}}">Valider le retour</a></td>
                         </tr>
                     {{/if}}
                 {{/each}}
