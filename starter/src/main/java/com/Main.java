@@ -121,6 +121,7 @@ public class Main extends AbstractVerticle{
 
         router.route("/private/tools/:toolID").handler(context -> handleGetTool(context, engine));
         router.route("/private/del/:toolID").handler(this::handleDelTool);
+        router.route("/private/unborrow/:toolID").handler(this::handleUnborrowTool);
         router.route("/private/add").handler(this::handleAddTool);
         router.route("/private/tools").handler(context -> handleListTool(context, engine));
 
@@ -289,6 +290,22 @@ public class Main extends AbstractVerticle{
                         context.fail(res.cause());
                     }
                 });
+            }
+        }
+    }
+
+    private void handleUnborrowTool(RoutingContext context){
+        String toolID = context.request().getParam("toolID");
+        HttpServerResponse response = context.response();
+        if(toolID == null){
+            sendError(400, response);
+        }else{
+            JsonObject tool = tools.get(toolID);
+            if(tool == null){
+                sendError(404, response);
+            }else{
+                tool.put("isAvailable", true).put("owner", null).put("returnDate", null).put("toValidate", true);
+                response.putHeader("location", "/private/tools").setStatusCode(302).end();
             }
         }
     }
