@@ -154,3 +154,7 @@ td{
   background-color: #317dc0;
   color: white;
 }
+
+#delTool a:hover{
+  background-color: red;
+}

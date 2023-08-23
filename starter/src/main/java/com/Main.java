@@ -311,7 +311,7 @@ public class Main extends AbstractVerticle{
                 sendError(404, response);
             }else{
                 tools.remove(toolID);
-                response.putHeader("location", "/private/tools").setStatusCode(302).end();
+                response.putHeader("location", "/private/admin").setStatusCode(302).end();
             }
         }
     }
