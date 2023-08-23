@@ -41,6 +41,7 @@
                     <th>{{column3}}</th>
                     <th>{{column4}}</th>
                     <th>{{column5}}</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -52,6 +53,7 @@
                             <td>{{this.model}}</td>
                             <td>{{this.desc}}</td>
                             <td>{{this.idISEP}}</td>
+                            <td><a href="/private/del/{{this.uid}}">Supprimer</a></td>
                         </tr>          
                     {{/if}}
                 {{/each}}
