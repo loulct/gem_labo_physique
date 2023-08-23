@@ -2,31 +2,26 @@
 
 ## TODO
 ### Priority 1
-### User/Admin & Session
-- every admin account in Cc rather than admin@gem-labo.com (get all account with admin rool from property file)
-- admin private/admin/tool view
-- deleteTool admin route
-- validate admin route + email sent to user
-- unborrow user route ("return tool")
-- add alert message popput (see todo in code) 
-- timeout session (look at SessionHandlers)
-
-
-### Priority 2
-### Date
 - if date_expired = true -> sends email to user (admin Cc)
 - if return date expires -> date in red in table
+- add stats (frequency of use) (use sql?)
+- add alert message popput (see todo in code)
+- protect routes
 
+### Priority 2
+- sql Database (to avoid loss of data with redeployement)
+- change jsonObject to sql call
+- change properties call to sql call
+- every admin account in Cc rather than admin@gem-labo.com (get all accounts with admin role from database)
 
 ### Priority 3
-- add stats (frequency of use)
-- add more tests verticles
+AddTool route
+- delete tab add row with form
 
-
-### Priority 4
 ### Minor changes
-- improve java structure
-- optimise css files (main.css) + charte graphique homogénisation
-- improve password regex
-- clear password in browser console !!!
-- update README.md (how to install & how to use)
+improve java structure
+optimise css files (main.css) + charte graphique homogénisation
+improve password regex
+password in clear in browser console :(
+add more tests verticles
+update README.md (how to install & how to use)
