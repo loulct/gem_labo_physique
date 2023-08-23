@@ -120,7 +120,9 @@ public class Main extends AbstractVerticle{
         });
 
         router.route("/private/tools/:toolID").handler(context -> handleGetTool(context, engine));
-        router.route("/private/del/:toolID").handler(this::handleDelTool);
+        router.route("/private/admin/del/:toolID").handler(this::handleDelTool);
+        router.route("/private/unborrow/:toolID").handler(this::handleUnborrowTool);
+        router.route("/private/admin/validate/:toolID").handler(context -> handleValidateTool(context, engine));
         router.route("/private/add").handler(this::handleAddTool);
         router.route("/private/tools").handler(context -> handleListTool(context, engine));
 
@@ -284,6 +286,61 @@ public class Main extends AbstractVerticle{
                         resultsMail(email);
 
                         response.putHeader("location", "/private/tools").setStatusCode(302).end();
+
+                    }else{
+                        context.fail(res.cause());
+                    }
+                });
+            }
+        }
+    }
+
+    private void handleUnborrowTool(RoutingContext context){
+        String toolID = context.request().getParam("toolID");
+        HttpServerResponse response = context.response();
+        if(toolID == null){
+            sendError(400, response);
+        }else{
+            JsonObject tool = tools.get(toolID);
+            if(tool == null){
+                sendError(404, response);
+            }else{
+                tool.put("toValidate", true);
+                response.putHeader("location", "/private/tools").setStatusCode(302).end();
+            }
+        }
+    }
+
+    private void handleValidateTool(RoutingContext context, HandlebarsTemplateEngine engine){
+        String toolID = context.request().getParam("toolID");
+        HttpServerResponse response = context.response();
+        if(toolID == null){
+            sendError(400, response);
+        }else{
+            JsonObject tool = tools.get(toolID);
+            if(tool == null){
+                sendError(404, response);
+            }else{
+                String owner = tool.getString("owner");
+                
+                tool.put("isAvailable", true).put("owner", null).put("returnDate", null).put("toValidate", false);
+                
+                JsonObject data = new JsonObject().put("tool", tool);
+
+                engine.render(data, "private/validated.hbs", res -> {
+                    if(res.succeeded()){
+                        MailMessage email = new MailMessage()
+                            .setFrom("gem-labo-physique@gem-labo.com")
+                            .setTo(Arrays.asList(
+                                owner,
+                                "admin@gem-labo.com"))
+                            .setBounceAddress("gem-labo-physique@gem-labo.com")
+                            .setSubject("GEM LABO PHYSIQUE : Retour du matériel validé !")
+                            .setHtml(res.result().toString());
+
+                        resultsMail(email);
+
+                        response.putHeader("location", "/private/admin").setStatusCode(302).end();
 
                     }else{
                         context.fail(res.cause());
