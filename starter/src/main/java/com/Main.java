@@ -118,7 +118,7 @@ public class Main extends AbstractVerticle{
         router.route("/private/add").handler(this::handleAddTool);
         router.route("/private/tools").handler(context -> handleListTool(context, engine));
 
-        router.route("/loginhandler").handler(FormLoginHandler.create(authn).setDirectLoggedInOKURL("/private/tools"))
+        router.route("/loginhandler").handler(FormLoginHandler.create(authn).setDirectLoggedInOKURL("/private/admin"))
             .failureHandler(context -> {
                 context.response()
                     .putHeader("location", "/login.html")
