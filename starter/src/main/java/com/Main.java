@@ -64,6 +64,12 @@ public class Main extends AbstractVerticle{
         router.route().handler(BodyHandler.create());
         router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
+        SessionHandler sessionHandler = SessionHandler.create(LocalSessionStore.create(vertx));
+
+        sessionHandler.setSessionTimeout(60000L);
+
+        router.route().handler(sessionHandler);
+
         PropertyFileAuthentication authn = PropertyFileAuthentication.create(vertx, "vertx-users.properties");
 
         PropertyFileAuthorization authorizationProvider = PropertyFileAuthorization.create(vertx, "vertx-roles.properties");
