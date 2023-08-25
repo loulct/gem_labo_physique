@@ -29,6 +29,7 @@
             <li><a id="default" class="nav-link" onclick="showTab(event, 'available')">Matériels disponibles</a></li>
             <li><a class="nav-link" onclick="showTab(event, 'unavailable')">Matériels empruntés</a></li>
             <li><a class="nav-link" onclick="showTab(event, 'toValidate')">Matériel en attente de validation</a></li>
+            <li><a class="nav-link" onclick="showTab(event, 'statistics')">Statistiques</a></li>
         </ul>
     </div>
 
@@ -129,6 +130,10 @@
                 {{/each}}
             </tbody>
         </table>
+    </div>
+
+    <div id="statistics">
+
     </div>
     <script>
         window.addEventListener('load', function(e){
