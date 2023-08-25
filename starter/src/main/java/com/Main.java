@@ -19,6 +19,9 @@ import java.io.FileInputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Map;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.time.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -268,7 +271,9 @@ public class Main extends AbstractVerticle{
             }else{
                 String username = context.user().principal().getString("username");
 
-                tool.put("isAvailable", false).put("owner", username).put("returnDate", "test");
+                LocalDate today = LocalDate.now();
+
+                tool.put("isAvailable", false).put("owner", username).put("returnDate", today.plusDays(10));
 
                 JsonObject data = new JsonObject().put("tool", tool);
 
