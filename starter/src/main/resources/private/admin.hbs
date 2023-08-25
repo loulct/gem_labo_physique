@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="icon" type="image/x-icon" href="./styles/images/favicon.ico">
     <link rel="stylesheet" type="text/css" href="./styles/main.css" as="main">
+    <script src="https://unpkg.io/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
+    <script src='https://unpkg.io/@vertx/eventbus-bridge-client.js@1.0.0-1/vertx-eventbus.js'></script>
 </head>
 <body>
     <div id="page-wrapper">
@@ -48,12 +50,28 @@
             <tbody>
                 {{#each table}}
                     {{#if this.isAvailable}}
-                        <tr>
+                        <tr id="{{this.uid}}">
                             <td>{{this.uid}}</td>
-                            <td>{{this.brand}}</td>
-                            <td>{{this.model}}</td>
-                            <td>{{this.desc}}</td>
-                            <td>{{this.idISEP}}</td>
+                            <td>
+                                <div contenteditable="true" id="brand">
+                                    {{this.brand}}
+                                </div>
+                            </td>
+                            <td>
+                                <div contenteditable="true" id="model">
+                                    {{this.model}}
+                                </div>
+                            </td>
+                            <td>
+                                <div contenteditable="true" id="desc">
+                                    {{this.desc}}
+                                </div>
+                            </td>
+                            <td>
+                                <div contenteditable="true" id="idISEP">
+                                    {{this.idISEP}}
+                                </div>
+                            </td>
                             <td id="delTool"><a href="/private/admin/del/{{this.uid}}">Supprimer</a></td>
                         </tr>          
                     {{/if}}
@@ -140,6 +158,7 @@
             document.getElementById("default").click();
         });
     </script>
+    <script type="module" src="./scripts/editTable.js"></script>
     <script type="module" src="./scripts/dateExpired.js"></script>
     <script type="module" src="./scripts/showTab.js"></script>
 </body>
