@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.lang.Boolean;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -35,10 +37,12 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.auth.properties.PropertyFileAuthorization;
-//import io.vertx.rxjava3.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.bridge.PermittedOptions;
 
 import io.vertx.ext.mail.MailClient;
 import io.vertx.ext.mail.MailConfig;
@@ -72,6 +76,24 @@ public class Main extends AbstractVerticle{
         sessionHandler.setSessionTimeout(60000L);
 
         router.route().handler(sessionHandler);
+
+        SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+
+        PermittedOptions inboundPermitted = new PermittedOptions()
+            .setAddress("admin.edit");
+
+        SockJSBridgeOptions options = new SockJSBridgeOptions()
+            .addInboundPermitted(inboundPermitted);
+
+        vertx.eventBus().consumer("admin.edit", message -> {
+            JsonObject edit = (JsonObject) message.body();
+            JsonObject tool = tools.get(edit.getString("uid"));
+            tool.put(edit.getString("field"), edit.getString("value"));
+        });
+
+        router
+            .route("/eventbus/*")
+            .subRouter(sockJSHandler.bridge(options));
 
         PropertyFileAuthentication authn = PropertyFileAuthentication.create(vertx, "vertx-users.properties");
 
@@ -385,6 +407,44 @@ public class Main extends AbstractVerticle{
     }
 
     private void handleListTool(RoutingContext context, HandlebarsTemplateEngine engine){
+
+        LocalDate today = LocalDate.now();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        tools.entrySet().stream().forEach(e -> {
+            if(e.getValue().getString("returnDate") != null){
+                if(e.getValue().getString("owner") == context.user().principal().getString("username")){
+                    LocalDate date = LocalDate.parse(e.getValue().getString("returnDate"), formatter);
+                    if(!date.isAfter(today)){
+                        if(!Boolean.parseBoolean(e.getValue().getString("toValidate"))){
+                            JsonObject tool = tools.get(e.getKey());
+                            
+                            JsonObject data = new JsonObject().put("tool", tool);
+                            String username = context.user().principal().getString("username");
+
+                            engine.render(data, "private/expired.hbs", res -> {
+                                if(res.succeeded()){
+                                    MailMessage email = new MailMessage()
+                                        .setFrom("gem-labo-physique@gem-labo.com")
+                                        .setTo(Arrays.asList(
+                                            username,
+                                            "admin@gem-labo.com"))
+                                        .setBounceAddress("gem-labo-physique@gem-labo.com")
+                                        .setSubject("GEM LABO PHYSIQUE : Délai d'emprunt expiré !")
+                                        .setHtml(res.result().toString());
+            
+                                    resultsMail(email);    
+                                }else{
+                                    context.fail(res.cause());
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        });
+
         JsonObject data = new JsonObject().put("column1", "id")
             .put("column2", "Marque")
             .put("column3", "Modèle")
