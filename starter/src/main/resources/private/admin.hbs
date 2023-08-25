@@ -135,15 +135,6 @@
             document.getElementById("default").click();
         });
     </script>
-    <script>
-        window.onload = function(){
-            let dt =  document.getElementById("returnDate");
-            let today = new Date();
-
-            if(Date.parse(dt.dataset.value) < today){
-                dt.style.color="red";  
-            }
-        }
-    </script>
+    <script type="module" src="./scripts/dateExpired.js"></script>
     <script type="module" src="./scripts/showTab.js"></script>
 </body>
