@@ -23,6 +23,7 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.lang.Boolean;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -393,30 +394,33 @@ public class Main extends AbstractVerticle{
 
         tools.entrySet().stream().forEach(e -> {
             if(e.getValue().getString("returnDate") != null){
-                LocalDate date = LocalDate.parse(e.getValue().getString("returnDate"), formatter);
-                if(!date.isAfter(today)){
+                if(e.getValue().getString("owner") == context.user().principal().getString("username")){
+                    LocalDate date = LocalDate.parse(e.getValue().getString("returnDate"), formatter);
+                    if(!date.isAfter(today)){
+                        if(!Boolean.parseBoolean(e.getValue().getString("toValidate"))){
+                            JsonObject tool = tools.get(e.getKey());
+                            
+                            JsonObject data = new JsonObject().put("tool", tool);
+                            String username = context.user().principal().getString("username");
 
-                    JsonObject tool = tools.get(e.getKey());
-                    
-                    JsonObject data = new JsonObject().put("tool", tool);
-                    String username = context.user().principal().getString("username");
-
-                    engine.render(data, "private/expired.hbs", res -> {
-                        if(res.succeeded()){
-                            MailMessage email = new MailMessage()
-                                .setFrom("gem-labo-physique@gem-labo.com")
-                                .setTo(Arrays.asList(
-                                    username,
-                                    "admin@gem-labo.com"))
-                                .setBounceAddress("gem-labo-physique@gem-labo.com")
-                                .setSubject("GEM LABO PHYSIQUE : Délai d'emprunt expiré !")
-                                .setHtml(res.result().toString());
-    
-                            resultsMail(email);    
-                        }else{
-                            context.fail(res.cause());
+                            engine.render(data, "private/expired.hbs", res -> {
+                                if(res.succeeded()){
+                                    MailMessage email = new MailMessage()
+                                        .setFrom("gem-labo-physique@gem-labo.com")
+                                        .setTo(Arrays.asList(
+                                            username,
+                                            "admin@gem-labo.com"))
+                                        .setBounceAddress("gem-labo-physique@gem-labo.com")
+                                        .setSubject("GEM LABO PHYSIQUE : Délai d'emprunt expiré !")
+                                        .setHtml(res.result().toString());
+            
+                                    resultsMail(email);    
+                                }else{
+                                    context.fail(res.cause());
+                                }
+                            });
                         }
-                    });
+                    }
                 }
             }
         });
