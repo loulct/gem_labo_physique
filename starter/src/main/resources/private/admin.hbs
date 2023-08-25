@@ -9,6 +9,22 @@
     <link rel="stylesheet" type="text/css" href="./styles/main.css" as="main">
     <script src="https://unpkg.io/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
     <script src='https://unpkg.io/@vertx/eventbus-bridge-client.js@1.0.0-1/vertx-eventbus.js'></script>
+    <style>
+
+        .alert-warning {
+            color: #8c2800;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+
+        .alert {
+            position: relative;
+            padding: .75rem 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 187, 0, 0.8);
+            border-radius: .25rem;
+        }
+    </style>
 </head>
 <body>
     <div id="page-wrapper">
@@ -36,6 +52,11 @@
     </div>
 
     <div id="available" class="table">
+        <div id="errormsg">
+            <div class="message message-warning alert alert-warning" hidden>
+                <span id="alert_msg"></span>
+            </div>
+        </div>
         <table>
             <thead>
                 <tr>

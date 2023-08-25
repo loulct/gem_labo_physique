@@ -8,50 +8,23 @@
     <link rel="icon" type="image/x-icon" href="./styles/images/favicon.ico">
     <link rel="stylesheet" type="text/css" href="./styles/main.css" as="main">
     <style>
-        .fa {
-            display: inline-block;
-            font: normal normal normal 14px/1 FontAwesome;
-            font-size: inherit;
-            text-rendering: auto;
+        [contenteditable=true]:empty:not(:focus):before {
+            content: attr(data-text);
+            color:grey;
         }
 
-        .btn {
-            white-space: normal;
+        .alert-warning {
+            color: #8c2800;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
         }
 
-        .btn:not(:disabled):not(.disabled) {
-            cursor: pointer;
-        }
-
-        .btn {
-            display: inline-block;
-            font-weight: 400;
-            color: #212529;
-            text-align: center;
-            vertical-align: middle;
-            background-color: transparent;
-            border: 1px solid transparent;
-            padding: .375rem .75rem;
-            font-size: 1rem;
-            line-height: 1.5;
+        .alert {
+            position: relative;
+            padding: .75rem 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 187, 0, 0.8);
             border-radius: .25rem;
-            transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
-        }
-
-        .form-control {
-            display: block;
-            width: 100%;
-            height: calc(1.5em + .75rem + 2px);
-            padding: .375rem .75rem;
-            font-size: 1rem;
-            font-weight: 400;
-            line-height: 1.5;
-            color: #495057;
-            background-color: #fff;
-            background-clip: padding-box;
-            border: 1px solid #ced4da;
-            border-radius: .25rem;
-            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
         }
     </style>
 </head>
@@ -79,6 +52,11 @@
     </div>
 
     <div id="available" class="table">
+        <div id="errormsg">
+            <div class="message message-warning alert alert-warning" hidden>
+                <span id="alert_msg"></span>
+            </div>
+        </div>
         <table>
             <thead>
                 <tr>
@@ -103,32 +81,22 @@
                         </tr>          
                     {{/if}}
                 {{/each}}
-                <form action="/private/add" method="post">
-                    <tr>
-                        <td></td>
-                        <td>
-                            <select name="brand" id="brand" class="form-control" required>
-                                <option value="Steinberg">Steinberg</option>
-                                <option value="Stamos Soldering">Stamos Soldering</option>
-                            </select>
-                        </td>
-                        <td>
-                            <input id="model" name="model" type="text" class="form-control" placeholder="S-LS-28" required/>
-                        </td>
-                        <td>
-                            <input id="desc" name="desc" type="text" class="form-control" placeholder="Centrifugeuse" required/>
-                        </td>
-                        <td>
-                            <input id="idISEP" name="idISEP" type="text" class="form-control" placeholder="CentriA1" required/>
-                        </td>
-                        <td>
-                            <button type="submit" class="btn" id="btn">
-                                <span class="fa"></span>
-                                <span trspan="addtool-span">Ajouter le matériel</span>
-                            </button>
-                        </td>
-                    </tr>
-                </form>
+                <tr id="formRow">
+                    <td><strong>+</strong></td>
+                    <td>
+                        <div id="brand" name="brand" contenteditable="true" data-text="Marque"></div>
+                    </td>
+                    <td>
+                        <div id="model" name="model" contenteditable="true" data-text="Modèle"></div>
+                    </td>
+                    <td>
+                        <div id="desc" name="desc" contenteditable="true" data-text="Description"></div>
+                    </td>
+                    <td>
+                        <div id="idISEP" name="idISEP" contenteditable="true" data-text="Identifiant ISEP"></div>
+                    </td>
+                    <td><a id="addTool">Ajouter le matériel</a></td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -173,6 +141,60 @@
         window.addEventListener('load', function(e){
             document.getElementById("default").click();
         });
+    </script>
+    <script>
+        let divs = document.querySelectorAll('div[contenteditable=true]');
+
+        divs.forEach(cell => {
+            cell.addEventListener('keypress', function (e) {
+            
+            if(e.key === " "){
+                e.preventDefault();
+            }
+            
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+            });
+        });
+
+        function validate(){
+            let divs = document.querySelectorAll('div[contenteditable=true]');
+            let error = document.getElementById("alert_msg");
+            for (let i = 0; i < divs.length; i++) {
+                let content = divs[i].innerText;
+                if (content.length == 0) {
+                    error.innerHTML = "Les champs ne peuvent pas être vide";
+                    error.parentElement.removeAttribute("hidden");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        document.getElementById("addTool").onclick = function(e) {
+            e.preventDefault();
+            if (validate()) {
+
+                let brand = document.getElementById("brand").innerHTML;
+                let model = document.getElementById("model").innerHTML;
+                let desc = document.getElementById("desc").innerHTML;
+                let idISEP = document.getElementById("idISEP").innerHTML;
+
+                fetch('/private/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'brand=' + encodeURIComponent(brand)
+                    + '&model=' + encodeURIComponent(model)
+                    + '&desc=' + encodeURIComponent(desc)
+                    + '&idISEP=' + encodeURIComponent(idISEP)
+                });
+
+                window.location.href = "private/tools";
+            }
+        }
     </script>
     <script type="module" src="./scripts/dateExpired.js"></script>
     <script type="module" src="./scripts/showTab.js"></script>

@@ -1,14 +1,16 @@
 let eventBus = new EventBus('http://localhost:8888/eventbus');
 
 
+//TODO can change multiple cell and have "Enter" key event on window rather than cell ?
+
 eventBus.onopen = () => {
     console.log('Event bus connection opened');
 
-    const div = document.querySelectorAll('div[contenteditable=true]');
+    let divs = document.querySelectorAll('div[contenteditable=true]');
 
-    console.log(div);
+    let error = document.getElementById("alert_msg");
 
-    div.forEach(cell => {
+    divs.forEach(cell => {
         cell.addEventListener('keypress', function (e) {
         
         if(e.key === " "){
@@ -17,7 +19,6 @@ eventBus.onopen = () => {
         
         if (e.key === 'Enter') {
             e.preventDefault();
-            console.log('Enter key pressed');
 
             let data = {};
 
@@ -25,7 +26,13 @@ eventBus.onopen = () => {
             data["field"]=cell.id;
             data["value"]=cell.innerHTML.trim();
 
-            eventBus.publish("admin.edit", data);
+            if(cell.innerHTML.trim() != ""){
+                eventBus.publish("admin.edit", data);
+                window.location.href = "/private/admin";
+            }else{
+                error.innerHTML = "Les champs ne peuvent pas être vide";
+                error.parentElement.removeAttribute("hidden");
+            }
         }
     }, false);
     });
