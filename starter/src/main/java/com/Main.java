@@ -37,10 +37,12 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.auth.properties.PropertyFileAuthorization;
-//import io.vertx.rxjava3.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.bridge.PermittedOptions;
 
 import io.vertx.ext.mail.MailClient;
 import io.vertx.ext.mail.MailConfig;
@@ -74,6 +76,24 @@ public class Main extends AbstractVerticle{
         sessionHandler.setSessionTimeout(60000L);
 
         router.route().handler(sessionHandler);
+
+        SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+
+        PermittedOptions inboundPermitted = new PermittedOptions()
+            .setAddress("admin.edit");
+
+        SockJSBridgeOptions options = new SockJSBridgeOptions()
+            .addInboundPermitted(inboundPermitted);
+
+        vertx.eventBus().consumer("admin.edit", message -> {
+            JsonObject edit = (JsonObject) message.body();
+            JsonObject tool = tools.get(edit.getString("uid"));
+            tool.put(edit.getString("field"), edit.getString("value"));
+        });
+
+        router
+            .route("/eventbus/*")
+            .subRouter(sockJSHandler.bridge(options));
 
         PropertyFileAuthentication authn = PropertyFileAuthentication.create(vertx, "vertx-users.properties");
 

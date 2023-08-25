@@ -31,6 +31,7 @@ dependencies {
   implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
   implementation("io.vertx:vertx-core")
   implementation("io.vertx:vertx-web:$vertxVersion")
+  implementation("io.vertx:vertx-web-client:$vertxVersion")
   implementation("io.vertx:vertx-auth-properties:$vertxVersion")
   implementation("io.vertx:vertx-mail-client:$vertxVersion")
   implementation("io.vertx:vertx-web-templ-handlebars:$vertxVersion")
