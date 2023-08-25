@@ -7,6 +7,53 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="icon" type="image/x-icon" href="./styles/images/favicon.ico">
     <link rel="stylesheet" type="text/css" href="./styles/main.css" as="main">
+    <style>
+        .fa {
+            display: inline-block;
+            font: normal normal normal 14px/1 FontAwesome;
+            font-size: inherit;
+            text-rendering: auto;
+        }
+
+        .btn {
+            white-space: normal;
+        }
+
+        .btn:not(:disabled):not(.disabled) {
+            cursor: pointer;
+        }
+
+        .btn {
+            display: inline-block;
+            font-weight: 400;
+            color: #212529;
+            text-align: center;
+            vertical-align: middle;
+            background-color: transparent;
+            border: 1px solid transparent;
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: .25rem;
+            transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+
+        .form-control {
+            display: block;
+            width: 100%;
+            height: calc(1.5em + .75rem + 2px);
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+    </style>
 </head>
 <body>
     <div id="page-wrapper">
@@ -28,7 +75,7 @@
         <ul class="secondary-nav horizontal gray">
             <li><a id="default" class="nav-link" onclick="showTab(event, 'available')">Matériels disponibles</a></li>
             <li><a class="nav-link" onclick="showTab(event, 'unavailable')">Matériels déjà empruntés</a></li>
-            <li><a href="/private/addTool.html" class="nav-link">Ajouter un matériel</a></li>
+            <!--<li><a href="/private/addTool.html" class="nav-link">Ajouter un matériel</a></li>-->
         </ul>
     </div>
 
@@ -57,6 +104,32 @@
                         </tr>          
                     {{/if}}
                 {{/each}}
+                <form action="/private/add" method="post">
+                    <tr>
+                        <td></td>
+                        <td>
+                            <select name="brand" id="brand" class="form-control" required>
+                                <option value="Steinberg">Steinberg</option>
+                                <option value="Stamos Soldering">Stamos Soldering</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input id="model" name="model" type="text" class="form-control" placeholder="S-LS-28" required/>
+                        </td>
+                        <td>
+                            <input id="desc" name="desc" type="text" class="form-control" placeholder="Centrifugeuse" required/>
+                        </td>
+                        <td>
+                            <input id="idISEP" name="idISEP" type="text" class="form-control" placeholder="CentriA1" required/>
+                        </td>
+                        <td>
+                            <button type="submit" class="btn" id="btn">
+                                <span class="fa"></span>
+                                <span trspan="addtool-span">Ajouter le matériel</span>
+                            </button>
+                        </td>
+                    </tr>
+                </form>
             </tbody>
         </table>
     </div>
