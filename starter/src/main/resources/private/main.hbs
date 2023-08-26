@@ -8,50 +8,74 @@
     <link rel="icon" type="image/x-icon" href="./styles/images/favicon.ico">
     <link rel="stylesheet" type="text/css" href="./styles/main.css" as="main">
     <style>
-        .fa {
-            display: inline-block;
-            font: normal normal normal 14px/1 FontAwesome;
-            font-size: inherit;
-            text-rendering: auto;
+        .alert-warning {
+            color: #8c2800;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
         }
 
-        .btn {
-            white-space: normal;
+        .alert {
+            position: relative;
+            padding: .75rem 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 187, 0, 0.8);
+            border-radius: .25rem;
         }
 
-        .btn:not(:disabled):not(.disabled) {
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaaaaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
             cursor: pointer;
         }
 
-        .btn {
-            display: inline-block;
-            font-weight: 400;
-            color: #212529;
-            text-align: center;
-            vertical-align: middle;
-            background-color: transparent;
-            border: 1px solid transparent;
-            padding: .375rem .75rem;
-            font-size: 1rem;
-            line-height: 1.5;
-            border-radius: .25rem;
-            transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        input[type="date"]{
+            background-color: #317dc0;
+            padding: 15px;
+            color: #ffffff;
+            font-size: 12px;
+            border: none;
+            outline: none;
+            border-radius: 5px;
         }
-
-        .form-control {
-            display: block;
-            width: 100%;
-            height: calc(1.5em + .75rem + 2px);
-            padding: .375rem .75rem;
-            font-size: 1rem;
-            font-weight: 400;
-            line-height: 1.5;
-            color: #495057;
-            background-color: #fff;
-            background-clip: padding-box;
-            border: 1px solid #ced4da;
-            border-radius: .25rem;
-            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        ::-webkit-calendar-picker-indicator{
+            background-color: #ffffff;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .modal-content a:hover{
+            background-color: #148c16;
+            color: white;
         }
     </style>
 </head>
@@ -78,7 +102,30 @@
         </ul>
     </div>
 
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div style="display: flex; justify-content: center;">
+                <input type="date" id="session-date" name="session-date">
+            </div>
+            <div id="errormsg">
+                <div class="message message-warning alert alert-warning" hidden>
+                    <span id="alert_msg date"></span>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center; padding-top:10px;">
+                <a id="validate-date">Valider</a>
+            </div>
+        </div>
+    </div>
+
+
     <div id="available" class="table">
+        <div id="errormsg">
+            <div class="message message-warning alert alert-warning" hidden>
+                <span id="alert_msg"></span>
+            </div>
+        </div>
         <table>
             <thead>
                 <tr>
@@ -99,36 +146,26 @@
                             <td>{{this.model}}</td>
                             <td>{{this.desc}}</td>
                             <td>{{this.idISEP}}</td>
-                            <td><a href="/private/tools/{{this.uid}}">Emprunter</a></td>
+                            <td><a id="borrow" value="/private/tools/{{this.uid}}">Emprunter</a></td>
                         </tr>          
                     {{/if}}
                 {{/each}}
-                <form action="/private/add" method="post">
-                    <tr>
-                        <td></td>
-                        <td>
-                            <select name="brand" id="brand" class="form-control" required>
-                                <option value="Steinberg">Steinberg</option>
-                                <option value="Stamos Soldering">Stamos Soldering</option>
-                            </select>
-                        </td>
-                        <td>
-                            <input id="model" name="model" type="text" class="form-control" placeholder="S-LS-28" required/>
-                        </td>
-                        <td>
-                            <input id="desc" name="desc" type="text" class="form-control" placeholder="Centrifugeuse" required/>
-                        </td>
-                        <td>
-                            <input id="idISEP" name="idISEP" type="text" class="form-control" placeholder="CentriA1" required/>
-                        </td>
-                        <td>
-                            <button type="submit" class="btn" id="btn">
-                                <span class="fa"></span>
-                                <span trspan="addtool-span">Ajouter le matériel</span>
-                            </button>
-                        </td>
-                    </tr>
-                </form>
+                <tr id="formRow">
+                    <td><strong>+</strong></td>
+                    <td>
+                        <div id="brand" name="brand" contenteditable="true"></div>
+                    </td>
+                    <td>
+                        <div id="model" name="model" contenteditable="true"></div>
+                    </td>
+                    <td>
+                        <div id="desc" name="desc" contenteditable="true"></div>
+                    </td>
+                    <td>
+                        <div id="idISEP" name="idISEP" contenteditable="true"></div>
+                    </td>
+                    <td><a id="addTool">Ajouter le matériel</a></td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -173,6 +210,112 @@
         window.addEventListener('load', function(e){
             document.getElementById("default").click();
         });
+    </script>
+    <script>
+        document.querySelectorAll('td').forEach(function(td) {
+            td.addEventListener('click', function(e) {
+                if (e.target !== this) return;
+                var div = this.querySelector('div[contenteditable]');
+                if (div) div.focus();
+            });
+        });
+
+
+        let divs = document.querySelectorAll('div[contenteditable=true]');
+
+        divs.forEach(cell => {
+            cell.addEventListener('keypress', function (e) {
+            
+            if(e.key === " "){
+                e.preventDefault();
+            }
+            
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+            });
+        });
+
+        function validate(){
+            let divs = document.querySelectorAll('div[contenteditable=true]');
+            let error = document.getElementById("alert_msg");
+            for (let i = 0; i < divs.length; i++) {
+                let content = divs[i].innerText;
+                if (content.length == 0) {
+                    error.innerHTML = "Les champs ne peuvent pas être vide";
+                    error.parentElement.removeAttribute("hidden");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        document.getElementById("addTool").onclick = function(e) {
+            e.preventDefault();
+            if (validate()) {
+                let brand = document.getElementById("brand").innerHTML;
+                let model = document.getElementById("model").innerHTML;
+                let desc = document.getElementById("desc").innerHTML;
+                let idISEP = document.getElementById("idISEP").innerHTML;
+
+                fetch('/private/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'brand=' + encodeURIComponent(brand)
+                    + '&model=' + encodeURIComponent(model)
+                    + '&desc=' + encodeURIComponent(desc)
+                    + '&idISEP=' + encodeURIComponent(idISEP)
+                });
+
+                window.location.href = "private/tools";
+            }
+        }
+
+        let today = new Date().toISOString().split('T')[0];
+        document.getElementById("session-date").setAttribute('min', today);
+
+        document.querySelectorAll("#borrow").forEach(function(btn){
+            let error = document.getElementById("alert_msg date");
+            btn.addEventListener("click", function(e){
+                modal.style.display = "block";
+                document.getElementById("validate-date").onclick = function(e){
+                    e.preventDefault();
+
+                    if(document.getElementById("session-date").value != ""){
+                        let route = btn.getAttribute("value");
+                        let date = document.getElementById("session-date").value;
+
+                        fetch(route, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: 'returnDate=' + encodeURIComponent(date)
+                        });
+
+                        window.location.href = "/private/tools";
+                    }else{
+                        error.innerHTML = "Il faut saisir une date de retour du matériel";
+                        error.parentElement.removeAttribute("hidden");
+                    }
+                }
+            })
+        });
+
+        var modal = document.getElementById("modal");
+        var span = document.getElementsByClassName("close")[0];
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
     </script>
     <script type="module" src="./scripts/dateExpired.js"></script>
     <script type="module" src="./scripts/showTab.js"></script>
