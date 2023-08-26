@@ -283,6 +283,8 @@ public class Main extends AbstractVerticle{
 
     private void handleGetTool(RoutingContext context, HandlebarsTemplateEngine engine){
         String toolID = context.request().getParam("toolID");
+        String date = context.request().getParam("returnDate");
+
         HttpServerResponse response = context.response();
         if(toolID == null){
             sendError(400, response);
@@ -293,9 +295,7 @@ public class Main extends AbstractVerticle{
             }else{
                 String username = context.user().principal().getString("username");
 
-                LocalDate today = LocalDate.now();
-
-                tool.put("isAvailable", false).put("owner", username).put("returnDate", today.plusDays(10));
+                tool.put("isAvailable", false).put("owner", username).put("returnDate", date);
 
                 JsonObject data = new JsonObject().put("tool", tool);
 
