@@ -433,7 +433,7 @@ public class Main extends AbstractVerticle{
         String idISEP = context.request().getParam("idISEP");
         Integer uid = Integer.parseInt(tools.lastEntry().getKey()) + 1;
 
-        addTool(new JsonObject().put("uid", uid).put("brand", brand).put("model", model).put("desc", desc).put("idISEP", idISEP).put("isAvailable", true).put("owner", null).put("returnDate", null));
+        addTool(new JsonObject().put("uid", uid).put("brand", brand).put("model", model).put("desc", desc).put("idISEP", idISEP).put("isAvailable", true).put("owner", null).put("returnDate", null).put("borrowedDate", null).put("counter", 0));
 
         HttpServerResponse response = context.response();
         response.putHeader("location", "/private/tools").setStatusCode(302).end();

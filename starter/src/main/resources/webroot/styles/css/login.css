@@ -1,3 +1,5 @@
+@import url("colors.css");
+
 .login, .password {
     text-align: center;
     padding: 20px;
@@ -12,8 +14,13 @@
 }
 
 .forgot-password-link{
-    color: grey;
+    color: var(--secondary-font-color);
     text-decoration: none;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+.forgot-password-link:hover{
+    color: var(--primary-color);
 }
 
 .forgot-password{
@@ -21,11 +28,19 @@
 }
 
 .create-account{
-    padding-top: 2%;
+    margin-top:2%;
     text-align: center;
 }
 
 .create-account-link{
-    color: grey;
+    color: var(--secondary-font-color);
     text-decoration: none;
+    padding:1%;
+    border-radius: .25rem;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+.create-account-link:hover{
+    color: var(--tertiary-font-color);
+    background-color: var(--primary-color);
 }
