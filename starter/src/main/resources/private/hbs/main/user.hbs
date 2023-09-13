@@ -1,0 +1,142 @@
+<head>
+    <title>GEM LABO PHYSIQUE</title>    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="icon" type="image/x-icon" href="./styles/ico/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="./styles/css/common.css" as="common">
+    <link rel="stylesheet" type="text/css" href="./styles/css/modal.css" as="modal">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div id="page-wrapper">
+        <div class="horizontal gray">
+            <div class="dropdown">
+                <button class="dropbtn">{{user}}</button>
+                <div class="dropdown-content">
+                    <a href="/logout">Déconnexion</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="header">
+        <h1>Bienvenue {{user}} !</h1>
+    </div>
+
+    <div>
+        <ul class="secondary-nav horizontal gray">
+            <li><a id="default" class="nav-link" onclick="showTab(event, 'available')">Matériels disponibles</a></li>
+            <li><a class="nav-link" onclick="showTab(event, 'unavailable')">Matériels déjà empruntés</a></li>
+        </ul>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div style="display: flex; justify-content: center;">
+                <input type="date" id="session-date" name="session-date">
+            </div>
+            <div id="errormsg">
+                <div class="message message-warning alert alert-warning" hidden>
+                    <span id="alert_msg date"></span>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center; padding-top:10px;">
+                <a id="validate-date">Valider</a>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="available" class="table">
+        <div id="errormsg">
+            <div class="message message-warning alert alert-warning" hidden>
+                <span id="alert_msg"></span>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>{{column1}}</th>
+                    <th>{{column2}}</th>
+                    <th>{{column3}}</th>
+                    <th>{{column4}}</th>
+                    <th>{{column5}}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each table}}
+                    {{#if this.isAvailable}}
+                        <tr>
+                            <td>{{this.uid}}</td>
+                            <td>{{this.brand}}</td>
+                            <td>{{this.model}}</td>
+                            <td>{{this.desc}}</td>
+                            <td>{{this.idISEP}}</td>
+                            <td><a id="borrow" value="/private/tools/{{this.uid}}">Emprunter</a></td>
+                        </tr>          
+                    {{/if}}
+                {{/each}}
+                <tr id="formRow">
+                    <td><strong>+</strong></td>
+                    <td>
+                        <div id="brand" name="brand" contenteditable="true"></div>
+                    </td>
+                    <td>
+                        <div id="model" name="model" contenteditable="true"></div>
+                    </td>
+                    <td>
+                        <div id="desc" name="desc" contenteditable="true"></div>
+                    </td>
+                    <td>
+                        <div id="idISEP" name="idISEP" contenteditable="true"></div>
+                    </td>
+                    <td><a id="addTool">Ajouter le matériel</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="unavailable" class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>{{column1}}</th>
+                    <th>{{column2}}</th>
+                    <th>{{column3}}</th>
+                    <th>{{column4}}</th>
+                    <th>{{column5}}</th>
+                    <th>{{column8}}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each table}}
+                    {{#if this.isAvailable}}
+
+                    {{else}}
+                        {{#if this.toValidate}}
+
+                        {{else}}
+                            <tr>
+                                <td>{{this.uid}}</td>
+                                <td>{{this.brand}}</td>
+                                <td>{{this.model}}</td>
+                                <td>{{this.desc}}</td>
+                                <td>{{this.idISEP}}</td>
+                                <td id="returnDate" data-value="{{this.returnDate}}">{{this.returnDate}}</td>
+                                <td><a href="/private/unborrow/{{this.uid}}">Rendre le matériel</a></td>
+                            </tr>
+                        {{/if}}
+                    {{/if}}
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+    <script type="module" src="./scripts/common/selectDefaultTable.js"></script>
+    <script type="module" src="./scripts/common/dateExpired.js"></script>
+    <script type="module" src="./scripts/common/focusOnDiv.js"></script>
+    <script type="module" src="./scripts/common/showTab.js"></script>
+    <script type="module" src="./scripts/user/validateReturnDate.js"></script>
+    <script type="module" src="./scripts/user/addTool.js"></script>
+</body>

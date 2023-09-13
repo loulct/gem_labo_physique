@@ -88,7 +88,7 @@ public class Main extends AbstractVerticle{
                                     JsonObject data = new JsonObject().put("tool", tool);
                                     String username = e.getValue().getString("owner");
 
-                                    engine.render(data, "private/expired.hbs", res -> {
+                                    engine.render(data, "private/hbs/emails/expired.hbs", res -> {
                                         if(res.succeeded()){
                                             MailMessage email = new MailMessage()
                                                 .setFrom("gem-labo-physique@gem-labo.com")
@@ -169,7 +169,7 @@ public class Main extends AbstractVerticle{
 
                     data.put("user", context.user().principal().getString("username"));
 
-                    engine.render(data, "private/admin.hbs", res -> {
+                    engine.render(data, "private/hbs/main/admin.hbs", res -> {
                         if(res.succeeded()){
                             context.response().end(res.result());
                         }else{
@@ -221,7 +221,7 @@ public class Main extends AbstractVerticle{
                     FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
                     properties.store(outputStream, null);
 
-                    engine.render(data, "private/password.hbs", res -> {
+                    engine.render(data, "private/hbs/emails/password.hbs", res -> {
                         if(res.succeeded()){
                             MailMessage email = new MailMessage()
                                 .setFrom("gem-labo-physique@gem-labo.com")
@@ -271,7 +271,7 @@ public class Main extends AbstractVerticle{
                     FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
                     properties.store(outputStream, null);
 
-                    engine.render(data, "private/setup.hbs", res -> {
+                    engine.render(data, "private/hbs/emails/setup.hbs", res -> {
                         if(res.succeeded()){
                             MailMessage email = new MailMessage()
                                 .setFrom("gem-labo-physique@gem-labo.com")
@@ -348,7 +348,7 @@ public class Main extends AbstractVerticle{
 
                 JsonObject data = new JsonObject().put("tool", tool);
 
-                engine.render(data, "private/borrowed.hbs", res -> {
+                engine.render(data, "private/hbs/emails/borrowed.hbs", res -> {
                     if(res.succeeded()){
                         MailMessage email = new MailMessage()
                             .setFrom("gem-labo-physique@gem-labo.com")
@@ -403,7 +403,7 @@ public class Main extends AbstractVerticle{
                 
                 JsonObject data = new JsonObject().put("tool", tool);
 
-                engine.render(data, "private/validated.hbs", res -> {
+                engine.render(data, "private/hbs/emails/validated.hbs", res -> {
                     if(res.succeeded()){
                         MailMessage email = new MailMessage()
                             .setFrom("gem-labo-physique@gem-labo.com")
@@ -474,7 +474,7 @@ public class Main extends AbstractVerticle{
 
         data.put("user", context.user().principal().getString("username"));
 
-        engine.render(data, "private/main.hbs", res -> {
+        engine.render(data, "private/hbs/main/user.hbs", res -> {
             if(res.succeeded()){
                 context.response().end(res.result());
             }else{

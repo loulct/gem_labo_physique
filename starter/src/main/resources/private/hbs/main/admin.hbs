@@ -1,30 +1,12 @@
 <head>
     <title>GEM LABO PHYSIQUE</title>    
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-    <meta http-equiv="Pragma" content="no-cache"/>
-    <meta http-equiv="Expires" content="0"/>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="icon" type="image/x-icon" href="./styles/ico/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="./styles/css/common.css" as="common">
+    <link rel="stylesheet" type="text/css" href="./styles/scss/statsTable.css" as="statsTable">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="icon" type="image/x-icon" href="./styles/images/favicon.ico">
-    <link rel="stylesheet" type="text/css" href="./styles/main.css" as="main">
-    <link rel="stylesheet" href="./styles/stats.css" as="stats">
     <script src="https://unpkg.io/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
     <script src='https://unpkg.io/@vertx/eventbus-bridge-client.js@1.0.0-1/vertx-eventbus.js'></script>
-    <style>
-        .alert-warning {
-            color: #8c2800;
-            background-color: #fff3cd;
-            border-color: #ffeeba;
-        }
-
-        .alert {
-            position: relative;
-            padding: .75rem 1.25rem;
-            margin-bottom: 1rem;
-            border: 1px solid rgba(255, 187, 0, 0.8);
-            border-radius: .25rem;
-        }
-    </style>
 </head>
 <body>
     <div id="page-wrapper">
@@ -179,21 +161,9 @@
             {{/each}}
         </dl>
     </div>
-    <script>
-        window.addEventListener('load', function(e){
-            document.getElementById("default").click();
-        });
-    </script>
-    <script>
-        document.querySelectorAll('td').forEach(function(td) {
-            td.addEventListener('click', function(e) {
-                if (e.target !== this) return;
-                var div = this.querySelector('div[contenteditable]');
-                if (div) div.focus();
-            });
-        });
-    </script>
-    <script type="module" src="./scripts/editTable.js"></script>
-    <script type="module" src="./scripts/dateExpired.js"></script>
-    <script type="module" src="./scripts/showTab.js"></script>
+    <script type="module" src="./scripts/common/selectDefaultTable.js"></script>
+    <script type="module" src="./scripts/common/dateExpired.js"></script>
+    <script type="module" src="./scripts/common/focusOnDiv.js"></script>
+    <script type="module" src="./scripts/common/showTab.js"></script>
+    <script type="module" src="./scripts/admin/editTable.js"></script>
 </body>
