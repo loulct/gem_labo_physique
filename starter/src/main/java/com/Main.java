@@ -167,6 +167,23 @@ public class Main extends AbstractVerticle{
 
                     data.put("table", tools);
 
+                    int total_counter = tools.entrySet().stream()
+                        .map(e -> e.getValue().getInteger("counter"))
+                        .collect(Collectors.summingInt(Integer::intValue));
+                    System.out.println(total_counter);
+                    
+                    if(total_counter != 0){
+                       Map<String, JsonObject> arr = tools.entrySet().stream()
+                        .collect(Collectors.toMap(e -> e.getKey(), 
+                            e -> {
+                                e.getValue().put("percentage", (e.getValue().getInteger("counter")*100/total_counter));
+                                return e.getValue();
+                            }
+                        )
+                        );
+                        System.out.println(arr);
+                    }
+
                     data.put("user", context.user().principal().getString("username"));
 
                     engine.render(data, "private/admin.hbs", res -> {
