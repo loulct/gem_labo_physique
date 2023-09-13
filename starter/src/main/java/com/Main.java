@@ -295,7 +295,10 @@ public class Main extends AbstractVerticle{
             }else{
                 String username = context.user().principal().getString("username");
 
-                tool.put("isAvailable", false).put("owner", username).put("returnDate", date);
+                Integer counter = tool.getInteger("counter");
+                tool.put("isAvailable", false).put("owner", username).put("returnDate", date).put("counter", counter+1);
+
+                System.out.println(tool.getInteger("counter"));
 
                 JsonObject data = new JsonObject().put("tool", tool);
 
@@ -477,9 +480,9 @@ public class Main extends AbstractVerticle{
     }
 
     private void setUpInitialData(){
-        addTool(new JsonObject().put("uid", 1).put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("idISEP", "C1").put("isAvailable", true).put("owner", null).put("returnDate", null));
-        addTool(new JsonObject().put("uid", 2).put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("idISEP", "Alim1").put("isAvailable", true).put("owner", null).put("returnDate", null));
-        addTool(new JsonObject().put("uid", 3).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("idISEP", "AgitElec1").put("isAvailable", true).put("owner", null).put("returnDate", null));
+        addTool(new JsonObject().put("uid", 1).put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("idISEP", "C1").put("isAvailable", true).put("owner", null).put("returnDate", null).put("borrowedDate", null).put("counter", 0));
+        addTool(new JsonObject().put("uid", 2).put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("idISEP", "Alim1").put("isAvailable", true).put("owner", null).put("returnDate", null).put("borrowedDate", null).put("counter", 0));
+        addTool(new JsonObject().put("uid", 3).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("idISEP", "AgitElec1").put("isAvailable", true).put("owner", null).put("returnDate", null).put("borrowedDate", null).put("counter", 0));
     }
 
     private void addTool(JsonObject tool){

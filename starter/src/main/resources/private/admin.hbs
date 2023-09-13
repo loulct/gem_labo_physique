@@ -175,13 +175,22 @@
         <dl>
             <dt>Fréquence d'emprunt par matériel</dt>
             {{#each table}}
-                <dd class="percentage percentage-20"><span class="text">{{this.idISEP}}</span></dd>
+                <dd class="percentage percentage-{{this.counter}}"><span class="text">{{this.idISEP}}</span></dd>
             {{/each}}
         </dl>
     </div>
     <script>
         window.addEventListener('load', function(e){
             document.getElementById("default").click();
+        });
+    </script>
+    <script>
+        document.querySelectorAll('td').forEach(function(td) {
+            td.addEventListener('click', function(e) {
+                if (e.target !== this) return;
+                var div = this.querySelector('div[contenteditable]');
+                if (div) div.focus();
+            });
         });
     </script>
     <script type="module" src="./scripts/editTable.js"></script>
