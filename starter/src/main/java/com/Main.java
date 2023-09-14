@@ -54,22 +54,66 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import com.example.starter.SqlClient;
+import io.vertx.sqlclient.Pool;
+import io.vertx.sqlclient.Row;
+import java.math.BigInteger;
+import java.util.concurrent.CompletableFuture;
 
 public class Main extends AbstractVerticle{
     public static void main(String[] args) {
         Launcher.executeCommand("run", Main.class.getName());
     }
 
-    private NavigableMap<String, JsonObject> tools = new TreeMap<>();
+    JsonObject data = new JsonObject().put("column1", "id")
+            .put("column2", "Marque")
+            .put("column3", "Modèle")
+            .put("column4", "Description")
+            .put("column5", "Identification ISEP")
+            .put("column6", "Disponible ?")
+            .put("column7", "Emprunté par")
+            .put("column8", "Date de retour");
 
     @Override
     public void start() throws Exception {
 
-        setUpInitialData();
+        Pool pool = SqlClient.launch(vertx);
 
         HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
-        Timer timer = new Timer();
+        Router router = Router.router(vertx);
+        router.route().handler(BodyHandler.create());
+
+        router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+        SessionHandler sessionHandler = SessionHandler.create(LocalSessionStore.create(vertx));
+        sessionHandler.setSessionTimeout(60000L);
+        router.route().handler(sessionHandler);
+
+        SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+        PermittedOptions inboundPermitted = new PermittedOptions()
+            .setAddress("admin.edit");
+        SockJSBridgeOptions options = new SockJSBridgeOptions()
+            .addInboundPermitted(inboundPermitted);
+
+        vertx.eventBus().consumer("admin.edit", message -> {
+            JsonObject edit = (JsonObject) message.body();
+            BigInteger id = new BigInteger(edit.getString("id"));
+            CompletableFuture<JsonArray> future = SqlClient.getTool(pool, id);
+
+            future.thenAccept(jsonArray -> {
+                SqlClient.editTool(pool, edit.getString("field"), edit.getString("value"), id);
+            }).exceptionally(ex -> {
+                return null;
+            });
+        });
+
+        router
+            .route("/eventbus/*")
+            .subRouter(sockJSHandler.bridge(options));
+
+        PropertyFileAuthentication authn = PropertyFileAuthentication.create(vertx, "vertx-users.properties");
+        PropertyFileAuthorization authorizationProvider = PropertyFileAuthorization.create(vertx, "vertx-roles.properties");
+
+        /*Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -111,42 +155,7 @@ public class Main extends AbstractVerticle{
                     }
                 });
             }
-        }, 0, 24 * 60 * 60 * 1000);
-
-        Router router = Router.router(vertx);
-
-        SqlClient.launch(vertx);
-        
-        router.route().handler(BodyHandler.create());
-        router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-
-        SessionHandler sessionHandler = SessionHandler.create(LocalSessionStore.create(vertx));
-
-        sessionHandler.setSessionTimeout(60000L);
-
-        router.route().handler(sessionHandler);
-
-        SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-
-        PermittedOptions inboundPermitted = new PermittedOptions()
-            .setAddress("admin.edit");
-
-        SockJSBridgeOptions options = new SockJSBridgeOptions()
-            .addInboundPermitted(inboundPermitted);
-
-        vertx.eventBus().consumer("admin.edit", message -> {
-            JsonObject edit = (JsonObject) message.body();
-            JsonObject tool = tools.get(edit.getString("uid"));
-            tool.put(edit.getString("field"), edit.getString("value"));
-        });
-
-        router
-            .route("/eventbus/*")
-            .subRouter(sockJSHandler.bridge(options));
-
-        PropertyFileAuthentication authn = PropertyFileAuthentication.create(vertx, "vertx-users.properties");
-
-        PropertyFileAuthorization authorizationProvider = PropertyFileAuthorization.create(vertx, "vertx-roles.properties");
+        }, 0, 24 * 60 * 60 * 1000);*/
 
         router.route("/private/*").handler(RedirectAuthHandler.create(authn, "/login.html"));
 
@@ -159,25 +168,24 @@ public class Main extends AbstractVerticle{
             authorizationProvider.getAuthorizations(context.user()).onSuccess(v -> {
                 if (RoleBasedAuthorization.create("admin").match(context.user())){
                     System.out.println("User is admin");
-                    JsonObject data = new JsonObject().put("column1", "id")
-                        .put("column2", "Marque")
-                        .put("column3", "Modèle")
-                        .put("column4", "Description")
-                        .put("column5", "Identification ISEP")
-                        .put("column6", "Disponible ?")
-                        .put("column7", "Emprunté par")
-                        .put("column8", "Date de retour");
 
-                    data.put("table", tools);
+                    String username = context.user().principal().getString("username");
+                    CompletableFuture<JsonArray> future = SqlClient.adminView(pool);
 
-                    data.put("user", context.user().principal().getString("username"));
+                    future.thenAccept(jsonArray -> {
 
-                    engine.render(data, "private/hbs/main/admin.hbs", res -> {
-                        if(res.succeeded()){
-                            context.response().end(res.result());
-                        }else{
-                            context.fail(res.cause());
-                        }
+                        data.put("table", jsonArray);
+                        data.put("user", username);
+
+                        engine.render(data, "private/hbs/main/admin.hbs", res -> {
+                            if(res.succeeded()){
+                                context.response().end(res.result());
+                            }else{
+                                context.fail(res.cause());
+                            }
+                        });
+                    }).exceptionally(ex -> {
+                        return null;
                     });
                 }else{
                     System.out.println("User isn't admin");
@@ -193,12 +201,12 @@ public class Main extends AbstractVerticle{
             routingContext.response().setStatusCode(302).putHeader("Location", "/private/tools").end();
         });
 
-        router.route("/private/tools/:toolID").handler(context -> handleGetTool(context, engine));
-        router.route("/private/admin/del/:toolID").handler(this::handleDelTool);
-        router.route("/private/unborrow/:toolID").handler(this::handleUnborrowTool);
-        router.route("/private/admin/validate/:toolID").handler(context -> handleValidateTool(context, engine));
-        router.route("/private/add").handler(this::handleAddTool);
-        router.route("/private/tools").handler(context -> handleListTool(context, engine));
+        router.route("/private/tools/:toolID").handler(context -> handleGetTool(context, engine, pool));
+        router.route("/private/admin/del/:toolID").handler(context -> handleDelTool(context, pool));
+        router.route("/private/unborrow/:toolID").handler(context -> handleUnborrowTool(context, pool));
+        router.route("/private/admin/validate/:toolID").handler(context -> handleValidateTool(context, engine, pool));
+        router.route("/private/add").handler(context -> handleAddTool(context, pool));
+        router.route("/private/tools").handler(context -> handleListTool(context, engine, pool));
 
         router.route("/loginhandler").handler(FormLoginHandler.create(authn).setDirectLoggedInOKURL("/private/admin"))
             .failureHandler(context -> {
@@ -316,40 +324,19 @@ public class Main extends AbstractVerticle{
         vertx.createHttpServer().requestHandler(router).listen(8888);
     }
 
-    public void resultsMail(MailMessage email) {
-        MailClient mailClient = MailClient.createShared(vertx, new MailConfig().setPort(25));
-
-        mailClient.sendMail(email, result -> {
-            if (result.succeeded()) {
-                System.out.println(result.result());
-                System.out.println("Mail sent");
-            } else {
-                System.out.println("got exception");
-                result.cause().printStackTrace();
-            }
-        });
-    }
-
-    private void handleGetTool(RoutingContext context, HandlebarsTemplateEngine engine){
+    private void handleGetTool(RoutingContext context, HandlebarsTemplateEngine engine, Pool pool){
         String toolID = context.request().getParam("toolID");
         String date = context.request().getParam("returnDate");
+        String username = context.user().principal().getString("username");
 
         HttpServerResponse response = context.response();
         if(toolID == null){
             sendError(400, response);
         }else{
-            JsonObject tool = tools.get(toolID);
-            if(tool == null){
-                sendError(404, response);
-            }else{
-                String username = context.user().principal().getString("username");
+            CompletableFuture<JsonArray> future =  SqlClient.borrowTool(pool, new BigInteger("1"), date, new BigInteger(toolID));
 
-                Integer counter = tool.getInteger("counter");
-                tool.put("isAvailable", false).put("owner", username).put("returnDate", date).put("counter", counter+1);
-
-                System.out.println(tool.getInteger("counter"));
-
-                JsonObject data = new JsonObject().put("tool", tool);
+            future.thenAccept(jsonArray -> {
+                JsonObject data = new JsonObject().put("tool", jsonArray);
 
                 engine.render(data, "private/hbs/emails/borrowed.hbs", res -> {
                     if(res.succeeded()){
@@ -370,133 +357,132 @@ public class Main extends AbstractVerticle{
                         context.fail(res.cause());
                     }
                 });
-            }
+            }).exceptionally(ex -> {
+                return null;
+            });
         }
     }
 
-    private void handleUnborrowTool(RoutingContext context){
+    private void handleUnborrowTool(RoutingContext context, Pool pool){
         String toolID = context.request().getParam("toolID");
         HttpServerResponse response = context.response();
         if(toolID == null){
             sendError(400, response);
         }else{
-            JsonObject tool = tools.get(toolID);
-            if(tool == null){
-                sendError(404, response);
-            }else{
-                tool.put("toValidate", true);
-                response.putHeader("location", "/private/tools").setStatusCode(302).end();
-            }
+            SqlClient.unborrowTool(pool, new BigInteger(toolID));
+            response.putHeader("location", "/private/tools").setStatusCode(302).end();
         }
     }
 
-    private void handleValidateTool(RoutingContext context, HandlebarsTemplateEngine engine){
+    private void handleValidateTool(RoutingContext context, HandlebarsTemplateEngine engine, Pool pool){
         String toolID = context.request().getParam("toolID");
         HttpServerResponse response = context.response();
         if(toolID == null){
             sendError(400, response);
         }else{
-            JsonObject tool = tools.get(toolID);
-            if(tool == null){
-                sendError(404, response);
-            }else{
-                String owner = tool.getString("owner");
-                
-                tool.put("isAvailable", true).put("owner", null).put("returnDate", null).put("toValidate", false);
-                
-                JsonObject data = new JsonObject().put("tool", tool);
+            CompletableFuture<JsonArray> future =  SqlClient.getTool(pool, new BigInteger(toolID));
 
-                engine.render(data, "private/hbs/emails/validated.hbs", res -> {
-                    if(res.succeeded()){
-                        MailMessage email = new MailMessage()
-                            .setFrom("gem-labo-physique@gem-labo.com")
-                            .setTo(Arrays.asList(
-                                owner,
-                                "admin@gem-labo.com"))
-                            .setBounceAddress("gem-labo-physique@gem-labo.com")
-                            .setSubject("GEM LABO PHYSIQUE : Retour du matériel validé !")
-                            .setHtml(res.result().toString());
+            future.thenAccept(jsonArray -> {
 
-                        resultsMail(email);
+                CompletableFuture<JsonArray> owner =  SqlClient.getOwner(pool, new BigInteger(toolID));
 
-                        response.putHeader("location", "/private/admin").setStatusCode(302).end();
+                owner.thenAccept(e -> {
+                    // TODO FIX PROBLEM WITH VALIDATED HBS
+                    // AND GET USER EMAIL
+                    
+                    //String username = e.getString("email");
+                    System.out.println(e);
+                    String username = "test";
 
-                    }else{
-                        context.fail(res.cause());
-                    }
+                    SqlClient.validateTool(pool, new BigInteger(toolID));
+                    JsonObject data = new JsonObject().put("tool", jsonArray);
+
+                    engine.render(data, "private/hbs/emails/validated.hbs", res -> {
+                        if(res.succeeded()){
+                            MailMessage email = new MailMessage()
+                                .setFrom("gem-labo-physique@gem-labo.com")
+                                .setTo(Arrays.asList(
+                                    username,
+                                    "admin@gem-labo.com"))
+                                .setBounceAddress("gem-labo-physique@gem-labo.com")
+                                .setSubject("GEM LABO PHYSIQUE : Retour du matériel validé !")
+                                .setHtml(res.result().toString());
+
+                            resultsMail(email);
+
+                            response.putHeader("location", "/private/admin").setStatusCode(302).end();
+
+                        }else{
+                            context.fail(res.cause());
+                        }
+                    });
+                }).exceptionally(ex -> {
+                    return null;
                 });
-            }
+            }).exceptionally(ex -> {
+                return null;
+            });
         }
     }
 
-    private void handleAddTool(RoutingContext context){
+    private void handleAddTool(RoutingContext context, Pool pool){
         String brand = context.request().getParam("brand");
         String model = context.request().getParam("model");
-        String desc = context.request().getParam("desc");
-        String idISEP = context.request().getParam("idISEP");
-        Integer uid = Integer.parseInt(tools.lastEntry().getKey()) + 1;
-
-        addTool(new JsonObject().put("uid", uid).put("brand", brand).put("model", model).put("desc", desc).put("idISEP", idISEP).put("isAvailable", true).put("owner", null).put("returnDate", null).put("borrowedDate", null).put("counter", 0));
+        String descro = context.request().getParam("descro");
+        String idisep = context.request().getParam("idisep");
+        
+        SqlClient.addTool(pool, new String[]{brand, model, descro, idisep});
 
         HttpServerResponse response = context.response();
         response.putHeader("location", "/private/tools").setStatusCode(302).end();
     }
 
-    private void handleDelTool(RoutingContext context){
+    private void handleDelTool(RoutingContext context, Pool pool){
         String toolID = context.request().getParam("toolID");
         HttpServerResponse response = context.response();
         if(toolID == null){
             sendError(400, response);
         }else{
-            JsonObject tool = tools.get(toolID);
-            if(tool == null){
-                sendError(404, response);
-            }else{
-                tools.remove(toolID);
-                response.putHeader("location", "/private/admin").setStatusCode(302).end();
-            }
+            SqlClient.delTool(pool, new BigInteger(toolID));
+            response.putHeader("location", "/private/admin").setStatusCode(302).end();
         }
     }
 
-    private void handleListTool(RoutingContext context, HandlebarsTemplateEngine engine){
-        JsonObject data = new JsonObject().put("column1", "id")
-            .put("column2", "Marque")
-            .put("column3", "Modèle")
-            .put("column4", "Description")
-            .put("column5", "Identification ISEP")
-            .put("column6", "Disponible ?")
-            .put("column7", "Emprunté par")
-            .put("column8", "Date de retour");
+    private void handleListTool(RoutingContext context, HandlebarsTemplateEngine engine, Pool pool){
+        String username = context.user().principal().getString("username");
+        CompletableFuture<JsonArray> future = SqlClient.listTool(pool, username);
 
+        future.thenAccept(jsonArray -> {
+            data.put("table", jsonArray);
+            data.put("user", username);
 
-        Map<String, JsonObject> arr = tools.entrySet().stream()
-            .filter(e -> (e.getValue().getString("owner") == null || e.getValue().getString("owner") == context.user().principal().getString("username")))
-            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            engine.render(data, "private/hbs/main/user.hbs", res -> {
+                if(res.succeeded()){
+                    context.response().end(res.result());
+                }else{
+                    context.fail(res.cause());
+                }
+            });
+        }).exceptionally(ex -> {
+            return null;
+        });
+    }
 
-        data.put("table", arr);
+    public void resultsMail(MailMessage email) {
+        MailClient mailClient = MailClient.createShared(vertx, new MailConfig().setPort(25));
 
-        data.put("user", context.user().principal().getString("username"));
-
-        engine.render(data, "private/hbs/main/user.hbs", res -> {
-            if(res.succeeded()){
-                context.response().end(res.result());
-            }else{
-                context.fail(res.cause());
+        mailClient.sendMail(email, result -> {
+            if (result.succeeded()) {
+                System.out.println(result.result());
+                System.out.println("Mail sent");
+            } else {
+                System.out.println("got exception");
+                result.cause().printStackTrace();
             }
         });
     }
 
     private void sendError(int statusCode, HttpServerResponse response){
         response.setStatusCode(statusCode).end();
-    }
-
-    private void setUpInitialData(){
-        addTool(new JsonObject().put("uid", 1).put("brand", "Steinberg").put("model", "SBS-LZ-4000/20-12").put("desc", "Centrifugeuse").put("idISEP", "C1").put("isAvailable", true).put("owner", null).put("returnDate", null).put("borrowedDate", null).put("counter", 0));
-        addTool(new JsonObject().put("uid", 2).put("brand", "Stamos Soldering").put("model", "S-LS-28").put("desc", "Alimentation double").put("idISEP", "Alim1").put("isAvailable", true).put("owner", null).put("returnDate", null).put("borrowedDate", null).put("counter", 0));
-        addTool(new JsonObject().put("uid", 3).put("brand", "Steinberg").put("model", "SBS-ER-3000").put("desc", "Agitateur électrique").put("idISEP", "AgitElec1").put("isAvailable", true).put("owner", null).put("returnDate", null).put("borrowedDate", null).put("counter", 0));
-    }
-
-    private void addTool(JsonObject tool){
-        tools.put(tool.getString("uid"), tool);
     }
 }

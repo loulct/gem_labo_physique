@@ -53,8 +53,8 @@
             <tbody>
                 {{#each table}}
                     {{#if this.isAvailable}}
-                        <tr id="{{this.uid}}">
-                            <td>{{this.uid}}</td>
+                        <tr id="{{this.id}}">
+                            <td>{{this.id}}</td>
                             <td>
                                 <div contenteditable="true" id="brand">
                                     {{this.brand}}
@@ -66,16 +66,16 @@
                                 </div>
                             </td>
                             <td>
-                                <div contenteditable="true" id="desc">
-                                    {{this.desc}}
+                                <div contenteditable="true" id="descro">
+                                    {{this.descro}}
                                 </div>
                             </td>
                             <td>
-                                <div contenteditable="true" id="idISEP">
-                                    {{this.idISEP}}
+                                <div contenteditable="true" id="idisep">
+                                    {{this.idisep}}
                                 </div>
                             </td>
-                            <td id="delTool"><a href="/private/admin/del/{{this.uid}}">Supprimer</a></td>
+                            <td id="delTool"><a href="/private/admin/del/{{this.id}}">Supprimer</a></td>
                         </tr>          
                     {{/if}}
                 {{/each}}
@@ -105,12 +105,12 @@
 
                         {{else}}
                             <tr>
-                                <td>{{this.uid}}</td>
+                                <td>{{this.id}}</td>
                                 <td>{{this.brand}}</td>
                                 <td>{{this.model}}</td>
-                                <td>{{this.desc}}</td>
-                                <td>{{this.idISEP}}</td>
-                                <td>{{this.owner}}</td>
+                                <td>{{this.descro}}</td>
+                                <td>{{this.idisep}}</td>
+                                <td>{{this.userid}}</td>
                                 <td id="returnDate" data-value="{{this.returnDate}}">{{this.returnDate}}</td>
                             </tr>
                         {{/if}}
@@ -138,14 +138,14 @@
                 {{#each table}}
                     {{#if this.toValidate}}
                         <tr>
-                            <td>{{this.uid}}</td>
+                            <td>{{this.id}}</td>
                             <td>{{this.brand}}</td>
                             <td>{{this.model}}</td>
-                            <td>{{this.desc}}</td>
-                            <td>{{this.idISEP}}</td>
-                            <td>{{this.owner}}</td>
+                            <td>{{this.descro}}</td>
+                            <td>{{this.idisep}}</td>
+                            <td>{{this.userid}}</td>
                             <td id="returnDate" data-value="{{this.returnDate}}">{{this.returnDate}}</td>
-                            <td><a href="/private/admin/validate/{{this.uid}}">Valider le retour</a></td>
+                            <td><a href="/private/admin/validate/{{this.id}}">Valider le retour</a></td>
                         </tr>
                     {{/if}}
                 {{/each}}
@@ -157,7 +157,7 @@
         <dl>
             <dt>Fréquence d'emprunt par matériel</dt>
             {{#each table}}
-                <dd class="percentage percentage-{{this.counter}}"><span class="text">{{this.idISEP}}</span></dd>
+                <dd class="percentage percentage-{{this.counter}}"><span class="text">{{this.idisep}}</span></dd>
             {{/each}}
         </dl>
     </div>

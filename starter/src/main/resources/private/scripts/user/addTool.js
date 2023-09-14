@@ -32,8 +32,8 @@ document.getElementById("addTool").onclick = function(e) {
     if (validate()) {
         let brand = document.getElementById("brand").innerHTML;
         let model = document.getElementById("model").innerHTML;
-        let desc = document.getElementById("desc").innerHTML;
-        let idISEP = document.getElementById("idISEP").innerHTML;
+        let descro = document.getElementById("descro").innerHTML;
+        let idisep = document.getElementById("idisep").innerHTML;
 
         fetch('/private/add', {
             method: 'POST',
@@ -42,8 +42,8 @@ document.getElementById("addTool").onclick = function(e) {
             },
             body: 'brand=' + encodeURIComponent(brand)
             + '&model=' + encodeURIComponent(model)
-            + '&desc=' + encodeURIComponent(desc)
-            + '&idISEP=' + encodeURIComponent(idISEP)
+            + '&descro=' + encodeURIComponent(descro)
+            + '&idisep=' + encodeURIComponent(idisep)
         });
 
         window.location.href = "private/tools";
