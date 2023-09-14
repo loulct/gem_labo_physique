@@ -53,6 +53,7 @@ import io.vertx.ext.mail.MailMessage;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import com.example.starter.SqlClient;
 
 public class Main extends AbstractVerticle{
     public static void main(String[] args) {
@@ -113,6 +114,8 @@ public class Main extends AbstractVerticle{
         }, 0, 24 * 60 * 60 * 1000);
 
         Router router = Router.router(vertx);
+
+        SqlClient.launch(vertx);
         
         router.route().handler(BodyHandler.create());
         router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
