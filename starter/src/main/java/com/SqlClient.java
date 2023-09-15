@@ -38,8 +38,6 @@ public class SqlClient extends AbstractVerticle {
         return pool;
     }
 
-    //TODO ADD ORDER BY id ASC IF NECESSARY
-
     public static CompletableFuture<JsonObject> getTool(Pool pool, BigInteger id){
         CompletableFuture<JsonObject> future = new CompletableFuture<>();
         pool.query(String.format("SELECT * FROM public.tools WHERE id = %d LIMIT 1;", id))
@@ -58,7 +56,7 @@ public class SqlClient extends AbstractVerticle {
     public static CompletableFuture<JsonArray> listTool(Pool pool, String username){
         CompletableFuture<JsonArray> future = new CompletableFuture<>();
         JsonArray result = new JsonArray();
-        pool.query(String.format("SELECT tools.id, tools.brand, tools.model, tools.descro, tools.idisep, tools.userid, tools.\"isAvailable\", tools.\"returnDate\", tools.\"toValidate\", tools.counter, u.email from public.tools AS tools LEFT JOIN public.users AS u on u.id = tools.userid WHERE userid is null or u.email = '%s'", username))
+        pool.query(String.format("SELECT tools.id, tools.brand, tools.model, tools.descro, tools.idisep, tools.userid, tools.\"isAvailable\", tools.\"returnDate\", tools.\"toValidate\", tools.counter, u.email from public.tools AS tools LEFT JOIN public.users AS u on u.id = tools.userid WHERE userid is null or u.email = '%s' ORDER BY tools.id ASC", username))
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
@@ -138,7 +136,7 @@ public class SqlClient extends AbstractVerticle {
     public static CompletableFuture<JsonArray> adminView(Pool pool){
         CompletableFuture<JsonArray> future = new CompletableFuture<>();
         JsonArray result = new JsonArray();
-        pool.query("SELECT * FROM public.tools")
+        pool.query("SELECT * FROM public.tools ORDER BY id ASC")
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
@@ -154,7 +152,7 @@ public class SqlClient extends AbstractVerticle {
     public static CompletableFuture<JsonArray> getAdmin(Pool pool){
         CompletableFuture<JsonArray> future = new CompletableFuture<>();
         JsonArray result = new JsonArray();
-        pool.query("SELECT email FROM public.users WHERE role = 'admin';")
+        pool.query("SELECT email FROM public.users WHERE role = 'admin' ORDER BY users.id ASC;")
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
