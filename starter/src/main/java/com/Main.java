@@ -58,6 +58,8 @@ import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.Row;
 import java.math.BigInteger;
 import java.util.concurrent.CompletableFuture;
+import java.lang.InterruptedException;
+import java.util.concurrent.ExecutionException;
 
 public class Main extends AbstractVerticle{
     public static void main(String[] args) {
@@ -97,9 +99,9 @@ public class Main extends AbstractVerticle{
         vertx.eventBus().consumer("admin.edit", message -> {
             JsonObject edit = (JsonObject) message.body();
             BigInteger id = new BigInteger(edit.getString("id"));
-            CompletableFuture<JsonArray> future = SqlClient.getTool(pool, id);
+            CompletableFuture<JsonObject> future = SqlClient.getTool(pool, id);
 
-            future.thenAccept(jsonArray -> {
+            future.thenAccept(jsonObject -> {
                 SqlClient.editTool(pool, edit.getString("field"), edit.getString("value"), id);
             }).exceptionally(ex -> {
                 return null;
@@ -333,12 +335,14 @@ public class Main extends AbstractVerticle{
         if(toolID == null){
             sendError(400, response);
         }else{
-            CompletableFuture<JsonArray> future =  SqlClient.borrowTool(pool, new BigInteger("1"), date, new BigInteger(toolID));
-
-            future.thenAccept(jsonArray -> {
-                JsonObject data = new JsonObject().put("tool", jsonArray);
-
-                engine.render(data, "private/hbs/emails/borrowed.hbs", res -> {
+            SqlClient.getUser(pool, username)
+            .thenCompose(userResult -> {
+                return SqlClient.borrowTool(pool, new BigInteger(userResult.getString("id")), date, new BigInteger(toolID))
+                    .thenApply(tool -> {
+                        return new JsonObject().put("tool", tool);
+                    });
+            }).thenAccept(result -> {
+                engine.render(result, "private/hbs/emails/borrowed.hbs", res -> {
                     if(res.succeeded()){
                         MailMessage email = new MailMessage()
                             .setFrom("gem-labo-physique@gem-labo.com")
@@ -357,8 +361,6 @@ public class Main extends AbstractVerticle{
                         context.fail(res.cause());
                     }
                 });
-            }).exceptionally(ex -> {
-                return null;
             });
         }
     }
@@ -380,47 +382,37 @@ public class Main extends AbstractVerticle{
         if(toolID == null){
             sendError(400, response);
         }else{
-            CompletableFuture<JsonArray> future =  SqlClient.getTool(pool, new BigInteger(toolID));
 
-            future.thenAccept(jsonArray -> {
-
-                CompletableFuture<JsonArray> owner =  SqlClient.getOwner(pool, new BigInteger(toolID));
-
-                owner.thenAccept(e -> {
-                    // TODO FIX PROBLEM WITH VALIDATED HBS
-                    // AND GET USER EMAIL
-                    
-                    //String username = e.getString("email");
-                    System.out.println(e);
-                    String username = "test";
-
-                    SqlClient.validateTool(pool, new BigInteger(toolID));
-                    JsonObject data = new JsonObject().put("tool", jsonArray);
-
-                    engine.render(data, "private/hbs/emails/validated.hbs", res -> {
-                        if(res.succeeded()){
-                            MailMessage email = new MailMessage()
-                                .setFrom("gem-labo-physique@gem-labo.com")
-                                .setTo(Arrays.asList(
-                                    username,
-                                    "admin@gem-labo.com"))
-                                .setBounceAddress("gem-labo-physique@gem-labo.com")
-                                .setSubject("GEM LABO PHYSIQUE : Retour du matériel validé !")
-                                .setHtml(res.result().toString());
-
-                            resultsMail(email);
-
-                            response.putHeader("location", "/private/admin").setStatusCode(302).end();
-
-                        }else{
-                            context.fail(res.cause());
-                        }
+            SqlClient.getTool(pool, new BigInteger(toolID))
+            .thenCompose(tool -> {
+                return SqlClient.getOwner(pool, new BigInteger(toolID))
+                    .thenApply(owner -> {
+                        return new JsonObject().put("tool", tool).put("email", owner.getString("email"));
                     });
-                }).exceptionally(ex -> {
-                    return null;
+            }).thenAccept(result -> {
+                System.out.println(result);
+                SqlClient.validateTool(pool, new BigInteger(toolID));
+
+                engine.render(result, "private/hbs/emails/validated.hbs", res -> {
+                    if(res.succeeded()){
+                        MailMessage email = new MailMessage()
+                            .setFrom("gem-labo-physique@gem-labo.com")
+                            .setTo(Arrays.asList(
+                                result.getString("email"),
+                                "admin@gem-labo.com"))
+                            .setBounceAddress("gem-labo-physique@gem-labo.com")
+                            .setSubject("GEM LABO PHYSIQUE : Retour du matériel validé !")
+                            .setHtml(res.result().toString());
+
+                        resultsMail(email);
+
+                        response.putHeader("location", "/private/admin").setStatusCode(302).end();
+
+                    }else{
+                        context.fail(res.cause());
+                    }
                 });
-            }).exceptionally(ex -> {
-                return null;
+
             });
         }
     }
