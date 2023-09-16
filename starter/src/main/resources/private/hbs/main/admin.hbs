@@ -12,7 +12,7 @@
     <div id="page-wrapper">
         <div class="horizontal gray">
             <div class="dropdown">
-                <button class="dropbtn">{{user}}</button>
+                <button class="dropbtn">{{user.firstname}} {{user.lastname}}</button>
                 <div class="dropdown-content">
                     <a href="/logout">Déconnexion</a>
                 </div>
@@ -21,7 +21,7 @@
     </div>
 
     <div id="header">
-        <h1>Bienvenue {{user}} !</h1>
+        <h1>Bienvenue {{user.firstname}} !</h1>
     </div>
 
     <div>
@@ -42,16 +42,16 @@
         <table>
             <thead>
                 <tr>
-                    <th>{{column1}}</th>
-                    <th>{{column2}}</th>
-                    <th>{{column3}}</th>
-                    <th>{{column4}}</th>
-                    <th>{{column5}}</th>
+                    <th>{{header.column1}}</th>
+                    <th>{{header.column2}}</th>
+                    <th>{{header.column3}}</th>
+                    <th>{{header.column4}}</th>
+                    <th>{{header.column5}}</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                {{#each table}}
+                {{#each tools}}
                     {{#if this.isAvailable}}
                         <tr id="{{this.id}}">
                             <td>{{this.id}}</td>
@@ -87,17 +87,17 @@
         <table>
             <thead>
                 <tr>
-                    <th>{{column1}}</th>
-                    <th>{{column2}}</th>
-                    <th>{{column3}}</th>
-                    <th>{{column4}}</th>
-                    <th>{{column5}}</th>
-                    <th>{{column7}}</th>
-                    <th>{{column8}}</th>
+                    <th>{{header.column1}}</th>
+                    <th>{{header.column2}}</th>
+                    <th>{{header.column3}}</th>
+                    <th>{{header.column4}}</th>
+                    <th>{{header.column5}}</th>
+                    <th>{{header.column7}}</th>
+                    <th>{{header.column8}}</th>
                 </tr>
             </thead>
             <tbody>
-                {{#each table}}
+                {{#each tools}}
                     {{#if this.isAvailable}}
 
                     {{else}}
@@ -124,18 +124,18 @@
         <table>
             <thead>
                 <tr>
-                    <th>{{column1}}</th>
-                    <th>{{column2}}</th>
-                    <th>{{column3}}</th>
-                    <th>{{column4}}</th>
-                    <th>{{column5}}</th>
-                    <th>{{column7}}</th>
-                    <th>{{column8}}</th>
+                    <th>{{header.column1}}</th>
+                    <th>{{header.column2}}</th>
+                    <th>{{header.column3}}</th>
+                    <th>{{header.column4}}</th>
+                    <th>{{header.column5}}</th>
+                    <th>{{header.column7}}</th>
+                    <th>{{header.column8}}</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                {{#each table}}
+                {{#each tools}}
                     {{#if this.toValidate}}
                         <tr>
                             <td>{{this.id}}</td>
@@ -156,7 +156,7 @@
     <div id="statistics" class="table">
         <dl>
             <dt>Fréquence d'emprunt par matériel</dt>
-            {{#each table}}
+            {{#each tools}}
                 <dd class="percentage percentage-{{this.counter}}"><span class="text">{{this.idisep}}</span></dd>
             {{/each}}
         </dl>

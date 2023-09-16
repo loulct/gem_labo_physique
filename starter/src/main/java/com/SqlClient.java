@@ -179,4 +179,36 @@ public class SqlClient extends AbstractVerticle {
 
         return future;
     }
+
+    public static CompletableFuture<JsonObject> getUserInfo(Pool pool, String email){
+        CompletableFuture<JsonObject> future = new CompletableFuture<>();
+        pool.query(String.format("SELECT * FROM public.users WHERE email = '%s' LIMIT 1;", email))
+            .execute()
+            .onSuccess(rows -> {
+                for(Row row : rows){
+                    JsonObject result = row.toJson();
+                    future.complete(result);
+                }
+            })
+            .onFailure(Throwable::printStackTrace);
+
+        return future;
+    }
+
+    public static CompletableFuture<JsonArray> getAllBorrowed(Pool pool){
+        CompletableFuture<JsonArray> future = new CompletableFuture<>();
+        JsonArray result = new JsonArray();
+        pool.query("SELECT * FROM public.tools AS tools INNER JOIN public.users AS u ON tools.userid = u.id;")
+            .execute()
+            .onSuccess(rows -> {
+                for(Row row : rows){
+                    result.add(row.toJson());
+                }
+                future.complete(result);
+            })
+            .onFailure(Throwable::printStackTrace);
+
+        return future;
+    }
+
 }
