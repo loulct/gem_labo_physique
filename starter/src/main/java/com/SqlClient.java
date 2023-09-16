@@ -10,6 +10,7 @@ import io.vertx.sqlclient.SqlConnectOptions;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.math.BigInteger;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import java.util.concurrent.CompletableFuture;
 
@@ -37,16 +38,13 @@ public class SqlClient extends AbstractVerticle {
         return pool;
     }
 
-    //TODO ADD ORDER BY id ASC IF NECESSARY
-
-    public static CompletableFuture<JsonArray> getTool(Pool pool, BigInteger id){
-        CompletableFuture<JsonArray> future = new CompletableFuture<>();
-        JsonArray result = new JsonArray();
-        pool.query(String.format("SELECT * FROM public.tools WHERE id = %d;", id))
+    public static CompletableFuture<JsonObject> getTool(Pool pool, BigInteger id){
+        CompletableFuture<JsonObject> future = new CompletableFuture<>();
+        pool.query(String.format("SELECT * FROM public.tools WHERE id = %d LIMIT 1;", id))
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
-                    result.add(row.toJson());
+                    JsonObject result = row.toJson();
                     future.complete(result);
                 }
             })
@@ -58,7 +56,7 @@ public class SqlClient extends AbstractVerticle {
     public static CompletableFuture<JsonArray> listTool(Pool pool, String username){
         CompletableFuture<JsonArray> future = new CompletableFuture<>();
         JsonArray result = new JsonArray();
-        pool.query(String.format("SELECT tools.id, tools.brand, tools.model, tools.descro, tools.idisep, tools.userid, tools.\"isAvailable\", tools.\"returnDate\", tools.\"toValidate\", tools.counter, u.email from public.tools AS tools LEFT JOIN public.users AS u on u.id = tools.userid WHERE userid is null or u.email = '%s'", username))
+        pool.query(String.format("SELECT tools.id, tools.brand, tools.model, tools.descro, tools.idisep, tools.userid, tools.\"isAvailable\", tools.\"returnDate\", tools.\"toValidate\", tools.counter, u.email from public.tools AS tools LEFT JOIN public.users AS u on u.id = tools.userid WHERE userid is null or u.email = '%s' ORDER BY tools.id ASC", username))
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
@@ -71,14 +69,17 @@ public class SqlClient extends AbstractVerticle {
         return future;
     }
 
-    public static CompletableFuture<JsonArray> borrowTool(Pool pool, BigInteger userid, String date, BigInteger id){
-        CompletableFuture<JsonArray> future = new CompletableFuture<>();
-        JsonArray result = new JsonArray();
+    public static CompletableFuture<JsonObject> borrowTool(Pool pool, BigInteger userid, String date, BigInteger id){
+        CompletableFuture<JsonObject> future = new CompletableFuture<>();
         pool.query(String.format("UPDATE public.tools SET \"isAvailable\" = false, userid = %d, \"returnDate\" = '%s', counter = counter + 1 WHERE id = %d;", userid, date, id))
+            .execute()
+            .onFailure(Throwable::printStackTrace);
+
+        pool.query(String.format("SELECT * FROM public.tools WHERE id = %d LIMIT 1", id))
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
-                    result.add(row.toJson());
+                    JsonObject result = row.toJson();
                     future.complete(result);
                 }
             })
@@ -111,14 +112,13 @@ public class SqlClient extends AbstractVerticle {
             .onFailure(Throwable::printStackTrace);
     }
 
-    public static CompletableFuture<JsonArray> getOwner(Pool pool, BigInteger id){
-        CompletableFuture<JsonArray> future = new CompletableFuture<>();
-        JsonArray result = new JsonArray();
-        pool.query(String.format("SELECT * FROM public.users AS u INNER JOIN public.tools AS tools ON u.id = tools.userid WHERE tools.id = %d", id))
+    public static CompletableFuture<JsonObject> getOwner(Pool pool, BigInteger id){
+        CompletableFuture<JsonObject> future = new CompletableFuture<>();
+        pool.query(String.format("SELECT * FROM public.users AS u INNER JOIN public.tools AS tools ON u.id = tools.userid WHERE tools.id = %d LIMIT 1", id))
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
-                    result.add(row.toJson());
+                    JsonObject result = row.toJson();
                     future.complete(result);
                 }
             })
@@ -136,7 +136,7 @@ public class SqlClient extends AbstractVerticle {
     public static CompletableFuture<JsonArray> adminView(Pool pool){
         CompletableFuture<JsonArray> future = new CompletableFuture<>();
         JsonArray result = new JsonArray();
-        pool.query("SELECT * FROM public.tools")
+        pool.query("SELECT * FROM public.tools ORDER BY id ASC")
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
@@ -148,4 +148,67 @@ public class SqlClient extends AbstractVerticle {
 
         return future;
     }
+
+    public static CompletableFuture<JsonArray> getAdmin(Pool pool){
+        CompletableFuture<JsonArray> future = new CompletableFuture<>();
+        JsonArray result = new JsonArray();
+        pool.query("SELECT email FROM public.users WHERE role = 'admin' ORDER BY users.id ASC;")
+            .execute()
+            .onSuccess(rows -> {
+                for(Row row : rows){
+                    result.add(row.toJson());
+                }
+                future.complete(result);
+            })
+            .onFailure(Throwable::printStackTrace);
+
+        return future;
+    }
+
+    public static CompletableFuture<JsonObject> getUser(Pool pool, String email){
+        CompletableFuture<JsonObject> future = new CompletableFuture<>();
+        pool.query(String.format("SELECT id FROM public.users WHERE email = '%s' LIMIT 1;", email))
+            .execute()
+            .onSuccess(rows -> {
+                for(Row row : rows){
+                    JsonObject result = row.toJson();
+                    future.complete(result);
+                }
+            })
+            .onFailure(Throwable::printStackTrace);
+
+        return future;
+    }
+
+    public static CompletableFuture<JsonObject> getUserInfo(Pool pool, String email){
+        CompletableFuture<JsonObject> future = new CompletableFuture<>();
+        pool.query(String.format("SELECT * FROM public.users WHERE email = '%s' LIMIT 1;", email))
+            .execute()
+            .onSuccess(rows -> {
+                for(Row row : rows){
+                    JsonObject result = row.toJson();
+                    future.complete(result);
+                }
+            })
+            .onFailure(Throwable::printStackTrace);
+
+        return future;
+    }
+
+    public static CompletableFuture<JsonArray> getAllBorrowed(Pool pool){
+        CompletableFuture<JsonArray> future = new CompletableFuture<>();
+        JsonArray result = new JsonArray();
+        pool.query("SELECT * FROM public.tools AS tools INNER JOIN public.users AS u ON tools.userid = u.id;")
+            .execute()
+            .onSuccess(rows -> {
+                for(Row row : rows){
+                    result.add(row.toJson());
+                }
+                future.complete(result);
+            })
+            .onFailure(Throwable::printStackTrace);
+
+        return future;
+    }
+
 }
