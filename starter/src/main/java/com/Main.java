@@ -152,7 +152,7 @@ public class Main extends AbstractVerticle{
                     });
                 });
             }
-        }, 0, *24 * 60 * 60 * 1000);
+        }, 0, 24 * 60 * 60 * 1000);
 
         router.route("/private/*").handler(RedirectAuthHandler.create(authn, "/login.html"));
 
