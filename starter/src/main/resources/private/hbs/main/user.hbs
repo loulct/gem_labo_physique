@@ -10,7 +10,7 @@
     <div id="page-wrapper">
         <div class="horizontal gray">
             <div class="dropdown">
-                <button class="dropbtn">{{user}}</button>
+                <button class="dropbtn">{{user.firstname}} {{user.lastname}}</button>
                 <div class="dropdown-content">
                     <a href="/logout">Déconnexion</a>
                 </div>
@@ -19,7 +19,7 @@
     </div>
 
     <div id="header">
-        <h1>Bienvenue {{user}} !</h1>
+        <h1>Bienvenue {{user.firstname}} !</h1>
     </div>
 
     <div>
@@ -56,24 +56,24 @@
         <table>
             <thead>
                 <tr>
-                    <th>{{column1}}</th>
-                    <th>{{column2}}</th>
-                    <th>{{column3}}</th>
-                    <th>{{column4}}</th>
-                    <th>{{column5}}</th>
+                    <th>{{header.column1}}</th>
+                    <th>{{header.column2}}</th>
+                    <th>{{header.column3}}</th>
+                    <th>{{header.column4}}</th>
+                    <th>{{header.column5}}</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                {{#each table}}
+                {{#each tools}}
                     {{#if this.isAvailable}}
                         <tr>
-                            <td>{{this.uid}}</td>
+                            <td>{{this.id}}</td>
                             <td>{{this.brand}}</td>
                             <td>{{this.model}}</td>
-                            <td>{{this.desc}}</td>
-                            <td>{{this.idISEP}}</td>
-                            <td><a id="borrow" value="/private/tools/{{this.uid}}">Emprunter</a></td>
+                            <td>{{this.descro}}</td>
+                            <td>{{this.idisep}}</td>
+                            <td><a id="borrow" value="/private/tools/{{this.id}}">Emprunter</a></td>
                         </tr>          
                     {{/if}}
                 {{/each}}
@@ -86,10 +86,10 @@
                         <div id="model" name="model" contenteditable="true"></div>
                     </td>
                     <td>
-                        <div id="desc" name="desc" contenteditable="true"></div>
+                        <div id="descro" name="descro" contenteditable="true"></div>
                     </td>
                     <td>
-                        <div id="idISEP" name="idISEP" contenteditable="true"></div>
+                        <div id="idisep" name="idisep" contenteditable="true"></div>
                     </td>
                     <td><a id="addTool">Ajouter le matériel</a></td>
                 </tr>
@@ -101,17 +101,17 @@
         <table>
             <thead>
                 <tr>
-                    <th>{{column1}}</th>
-                    <th>{{column2}}</th>
-                    <th>{{column3}}</th>
-                    <th>{{column4}}</th>
-                    <th>{{column5}}</th>
-                    <th>{{column8}}</th>
+                    <th>{{header.column1}}</th>
+                    <th>{{header.column2}}</th>
+                    <th>{{header.column3}}</th>
+                    <th>{{header.column4}}</th>
+                    <th>{{header.column5}}</th>
+                    <th>{{header.column8}}</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                {{#each table}}
+                {{#each tools}}
                     {{#if this.isAvailable}}
 
                     {{else}}
@@ -119,13 +119,13 @@
 
                         {{else}}
                             <tr>
-                                <td>{{this.uid}}</td>
+                                <td>{{this.id}}</td>
                                 <td>{{this.brand}}</td>
                                 <td>{{this.model}}</td>
-                                <td>{{this.desc}}</td>
-                                <td>{{this.idISEP}}</td>
+                                <td>{{this.descro}}</td>
+                                <td>{{this.idisep}}</td>
                                 <td id="returnDate" data-value="{{this.returnDate}}">{{this.returnDate}}</td>
-                                <td><a href="/private/unborrow/{{this.uid}}">Rendre le matériel</a></td>
+                                <td><a href="/private/unborrow/{{this.id}}">Rendre le matériel</a></td>
                             </tr>
                         {{/if}}
                     {{/if}}
