@@ -66,7 +66,7 @@ public class Main extends AbstractVerticle{
         Launcher.executeCommand("run", Main.class.getName());
     }
 
-    JsonObject data = new JsonObject().put("column1", "id")
+    JsonObject header = new JsonObject().put("column1", "id")
             .put("column2", "Marque")
             .put("column3", "Modèle")
             .put("column4", "Description")
@@ -115,49 +115,44 @@ public class Main extends AbstractVerticle{
         PropertyFileAuthentication authn = PropertyFileAuthentication.create(vertx, "vertx-users.properties");
         PropertyFileAuthorization authorizationProvider = PropertyFileAuthorization.create(vertx, "vertx-roles.properties");
 
-        /*Timer timer = new Timer();
+        Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 System.out.println("Server function called!");
                 LocalDate today = LocalDate.now();
-
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-                tools.entrySet().stream().forEach(e -> {
-                    if(e.getValue().getString("returnDate") != null){
-                        if(e.getValue().getString("owner") != null){
-                            LocalDate date = LocalDate.parse(e.getValue().getString("returnDate"), formatter);
-                            if(!date.isAfter(today)){
-                                if(!Boolean.parseBoolean(e.getValue().getString("toValidate"))){
-                                    JsonObject tool = tools.get(e.getKey());
-                                    
-                                    JsonObject data = new JsonObject().put("tool", tool);
-                                    String username = e.getValue().getString("owner");
-
-                                    engine.render(data, "private/hbs/emails/expired.hbs", res -> {
-                                        if(res.succeeded()){
-                                            MailMessage email = new MailMessage()
-                                                .setFrom("gem-labo-physique@gem-labo.com")
-                                                .setTo(Arrays.asList(
-                                                    username,
-                                                    "admin@gem-labo.com"))
-                                                .setBounceAddress("gem-labo-physique@gem-labo.com")
-                                                .setSubject("GEM LABO PHYSIQUE : Délai d'emprunt expiré !")
-                                                .setHtml(res.result().toString());
-                    
-                                            resultsMail(email);    
-                                        }else{
-                                            System.out.println(res.cause());
-                                        }
-                                    });
-                                }
+                SqlClient.getAllBorrowed(pool)
+                .thenAccept(result -> {
+                    result.stream().forEach(e -> {
+                        JsonObject entry = (JsonObject) e;
+                        LocalDate date = LocalDate.parse(entry.getString("returnDate"), formatter);
+                        if(!date.isAfter(today)){
+                            if(!Boolean.parseBoolean(entry.getString("toValidate"))){
+                                JsonObject data = new JsonObject().put("tool", entry);
+                                engine.render(data, "private/hbs/emails/expired.hbs", res -> {
+                                    if(res.succeeded()){
+                                        MailMessage email = new MailMessage()
+                                            .setFrom("gem-labo-physique@gem-labo.com")
+                                            .setTo(Arrays.asList(
+                                                entry.getString("email"),
+                                                "admin@gem-labo.com"))
+                                            .setBounceAddress("gem-labo-physique@gem-labo.com")
+                                            .setSubject("GEM LABO PHYSIQUE : Délai d'emprunt expiré !")
+                                            .setHtml(res.result().toString());
+                
+                                        resultsMail(email);    
+                                    }else{
+                                        System.out.println(res.cause());
+                                    }
+                                });
                             }
                         }
-                    }
+                    });
                 });
             }
-        }, 0, 24 * 60 * 60 * 1000);*/
+        }, 0, 24 * 60 * 60 * 1000);
 
         router.route("/private/*").handler(RedirectAuthHandler.create(authn, "/login.html"));
 
@@ -170,24 +165,22 @@ public class Main extends AbstractVerticle{
             authorizationProvider.getAuthorizations(context.user()).onSuccess(v -> {
                 if (RoleBasedAuthorization.create("admin").match(context.user())){
                     System.out.println("User is admin");
-
                     String username = context.user().principal().getString("username");
-                    CompletableFuture<JsonArray> future = SqlClient.adminView(pool);
-
-                    future.thenAccept(jsonArray -> {
-
-                        data.put("table", jsonArray);
-                        data.put("user", username);
-
-                        engine.render(data, "private/hbs/main/admin.hbs", res -> {
+                    SqlClient.getUserInfo(pool, username)
+                    .thenCompose(user -> {
+                        return SqlClient.adminView(pool)
+                            .thenApply(tools -> {
+                                return new JsonObject().put("user", user).put("tools", tools);
+                            });
+                    }).thenAccept(result -> {
+                        result.put("header", header);
+                        engine.render(result, "private/hbs/main/admin.hbs", res -> {
                             if(res.succeeded()){
                                 context.response().end(res.result());
                             }else{
                                 context.fail(res.cause());
                             }
                         });
-                    }).exceptionally(ex -> {
-                        return null;
                     });
                 }else{
                     System.out.println("User isn't admin");
@@ -382,7 +375,6 @@ public class Main extends AbstractVerticle{
         if(toolID == null){
             sendError(400, response);
         }else{
-
             SqlClient.getTool(pool, new BigInteger(toolID))
             .thenCompose(tool -> {
                 return SqlClient.getOwner(pool, new BigInteger(toolID))
@@ -442,21 +434,21 @@ public class Main extends AbstractVerticle{
 
     private void handleListTool(RoutingContext context, HandlebarsTemplateEngine engine, Pool pool){
         String username = context.user().principal().getString("username");
-        CompletableFuture<JsonArray> future = SqlClient.listTool(pool, username);
-
-        future.thenAccept(jsonArray -> {
-            data.put("table", jsonArray);
-            data.put("user", username);
-
-            engine.render(data, "private/hbs/main/user.hbs", res -> {
+        SqlClient.getUserInfo(pool, username)
+        .thenCompose(user -> {
+            return SqlClient.listTool(pool, username)
+                .thenApply(tool -> {
+                    return new JsonObject().put("user", user).put("tools", tool);
+                });
+        }).thenAccept(result -> {
+            result.put("header", header);
+            engine.render(result, "private/hbs/main/user.hbs", res -> {
                 if(res.succeeded()){
                     context.response().end(res.result());
                 }else{
                     context.fail(res.cause());
                 }
             });
-        }).exceptionally(ex -> {
-            return null;
         });
     }
 
