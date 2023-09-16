@@ -174,6 +174,18 @@ public class Main extends AbstractVerticle{
                             });
                     }).thenAccept(result -> {
                         result.put("header", header);
+
+                        int total_counter = result.getJsonArray("tools").stream()
+                        .map(e -> {
+                            return ((JsonObject) e).getInteger("counter");
+                        })
+                        .collect(Collectors.summingInt(Integer::intValue));
+
+                        if(total_counter != 0){
+                            result.getJsonArray("tools").stream()
+                            .forEach(e -> ((JsonObject) e).put("percentages", (((JsonObject) e).getInteger("counter")*100)/total_counter));
+                        }
+
                         engine.render(result, "private/hbs/main/admin.hbs", res -> {
                             if(res.succeeded()){
                                 context.response().end(res.result());
