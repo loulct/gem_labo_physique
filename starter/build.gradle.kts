@@ -35,6 +35,11 @@ dependencies {
   implementation("io.vertx:vertx-auth-properties:$vertxVersion")
   implementation("io.vertx:vertx-mail-client:$vertxVersion")
   implementation("io.vertx:vertx-web-templ-handlebars:$vertxVersion")
+  implementation("io.vertx:vertx-sql-client:$vertxVersion")
+  implementation("io.vertx:vertx-pg-client:$vertxVersion")
+  implementation("org.testcontainers:postgresql:1.12.4")
+  implementation("com.ongres.scram:client:2.1")
+  implementation("org.postgresql:postgresql:42.2.18")
   testImplementation("io.vertx:vertx-junit5")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }
