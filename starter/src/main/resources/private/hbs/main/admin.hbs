@@ -12,7 +12,7 @@
     <div id="page-wrapper">
         <div class="horizontal gray">
             <div class="dropdown">
-                <button class="dropbtn">{{user}}</button>
+                <button class="dropbtn">{{user.firstname}} {{user.lastname}}</button>
                 <div class="dropdown-content">
                     <a href="/logout">Déconnexion</a>
                 </div>
@@ -21,7 +21,7 @@
     </div>
 
     <div id="header">
-        <h1>Bienvenue {{user}} !</h1>
+        <h1>Bienvenue {{user.firstname}} !</h1>
     </div>
 
     <div>
@@ -42,19 +42,19 @@
         <table>
             <thead>
                 <tr>
-                    <th>{{column1}}</th>
-                    <th>{{column2}}</th>
-                    <th>{{column3}}</th>
-                    <th>{{column4}}</th>
-                    <th>{{column5}}</th>
+                    <th>{{header.column1}}</th>
+                    <th>{{header.column2}}</th>
+                    <th>{{header.column3}}</th>
+                    <th>{{header.column4}}</th>
+                    <th>{{header.column5}}</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                {{#each table}}
+                {{#each tools}}
                     {{#if this.isAvailable}}
-                        <tr id="{{this.uid}}">
-                            <td>{{this.uid}}</td>
+                        <tr id="{{this.id}}">
+                            <td>{{this.id}}</td>
                             <td>
                                 <div contenteditable="true" id="brand">
                                     {{this.brand}}
@@ -66,16 +66,16 @@
                                 </div>
                             </td>
                             <td>
-                                <div contenteditable="true" id="desc">
-                                    {{this.desc}}
+                                <div contenteditable="true" id="descro">
+                                    {{this.descro}}
                                 </div>
                             </td>
                             <td>
-                                <div contenteditable="true" id="idISEP">
-                                    {{this.idISEP}}
+                                <div contenteditable="true" id="idisep">
+                                    {{this.idisep}}
                                 </div>
                             </td>
-                            <td id="delTool"><a href="/private/admin/del/{{this.uid}}">Supprimer</a></td>
+                            <td id="delTool"><a href="/private/admin/del/{{this.id}}">Supprimer</a></td>
                         </tr>          
                     {{/if}}
                 {{/each}}
@@ -87,17 +87,17 @@
         <table>
             <thead>
                 <tr>
-                    <th>{{column1}}</th>
-                    <th>{{column2}}</th>
-                    <th>{{column3}}</th>
-                    <th>{{column4}}</th>
-                    <th>{{column5}}</th>
-                    <th>{{column7}}</th>
-                    <th>{{column8}}</th>
+                    <th>{{header.column1}}</th>
+                    <th>{{header.column2}}</th>
+                    <th>{{header.column3}}</th>
+                    <th>{{header.column4}}</th>
+                    <th>{{header.column5}}</th>
+                    <th>{{header.column7}}</th>
+                    <th>{{header.column8}}</th>
                 </tr>
             </thead>
             <tbody>
-                {{#each table}}
+                {{#each tools}}
                     {{#if this.isAvailable}}
 
                     {{else}}
@@ -105,12 +105,12 @@
 
                         {{else}}
                             <tr>
-                                <td>{{this.uid}}</td>
+                                <td>{{this.id}}</td>
                                 <td>{{this.brand}}</td>
                                 <td>{{this.model}}</td>
-                                <td>{{this.desc}}</td>
-                                <td>{{this.idISEP}}</td>
-                                <td>{{this.owner}}</td>
+                                <td>{{this.descro}}</td>
+                                <td>{{this.idisep}}</td>
+                                <td>{{this.userid}}</td>
                                 <td id="returnDate" data-value="{{this.returnDate}}">{{this.returnDate}}</td>
                             </tr>
                         {{/if}}
@@ -124,28 +124,28 @@
         <table>
             <thead>
                 <tr>
-                    <th>{{column1}}</th>
-                    <th>{{column2}}</th>
-                    <th>{{column3}}</th>
-                    <th>{{column4}}</th>
-                    <th>{{column5}}</th>
-                    <th>{{column7}}</th>
-                    <th>{{column8}}</th>
+                    <th>{{header.column1}}</th>
+                    <th>{{header.column2}}</th>
+                    <th>{{header.column3}}</th>
+                    <th>{{header.column4}}</th>
+                    <th>{{header.column5}}</th>
+                    <th>{{header.column7}}</th>
+                    <th>{{header.column8}}</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                {{#each table}}
+                {{#each tools}}
                     {{#if this.toValidate}}
                         <tr>
-                            <td>{{this.uid}}</td>
+                            <td>{{this.id}}</td>
                             <td>{{this.brand}}</td>
                             <td>{{this.model}}</td>
-                            <td>{{this.desc}}</td>
-                            <td>{{this.idISEP}}</td>
-                            <td>{{this.owner}}</td>
+                            <td>{{this.descro}}</td>
+                            <td>{{this.idisep}}</td>
+                            <td>{{this.userid}}</td>
                             <td id="returnDate" data-value="{{this.returnDate}}">{{this.returnDate}}</td>
-                            <td><a href="/private/admin/validate/{{this.uid}}">Valider le retour</a></td>
+                            <td><a href="/private/admin/validate/{{this.id}}">Valider le retour</a></td>
                         </tr>
                     {{/if}}
                 {{/each}}
@@ -156,8 +156,8 @@
     <div id="statistics" class="table">
         <dl>
             <dt>Fréquence d'emprunt par matériel</dt>
-            {{#each table}}
-                <dd class="percentage percentage-{{this.counter}}"><span class="text">{{this.idISEP}}</span></dd>
+            {{#each tools}}
+                <dd class="percentage percentage-{{this.counter}}"><span class="text">{{this.idisep}}</span></dd>
             {{/each}}
         </dl>
     </div>
