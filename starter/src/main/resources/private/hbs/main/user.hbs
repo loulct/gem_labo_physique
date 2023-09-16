@@ -1,0 +1,142 @@
+<head>
+    <title>GEM LABO PHYSIQUE</title>    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="icon" type="image/x-icon" href="./styles/ico/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="./styles/css/common.css" as="common">
+    <link rel="stylesheet" type="text/css" href="./styles/css/modal.css" as="modal">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div id="page-wrapper">
+        <div class="horizontal gray">
+            <div class="dropdown">
+                <button class="dropbtn">{{user.firstname}} {{user.lastname}}</button>
+                <div class="dropdown-content">
+                    <a href="/logout">Déconnexion</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="header">
+        <h1>Bienvenue {{user.firstname}} !</h1>
+    </div>
+
+    <div>
+        <ul class="secondary-nav horizontal gray">
+            <li><a id="default" class="nav-link" onclick="showTab(event, 'available')">Matériels disponibles</a></li>
+            <li><a class="nav-link" onclick="showTab(event, 'unavailable')">Matériels déjà empruntés</a></li>
+        </ul>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div style="display: flex; justify-content: center; padding-bottom:10px;">
+                <input type="date" id="session-date" name="session-date">
+            </div>
+            <div id="errormsg">
+                <div class="message message-warning alert alert-warning" hidden>
+                    <span id="alert_msg date"></span>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center; padding-top:10px;">
+                <a id="validate-date">Valider</a>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="available" class="table">
+        <div id="errormsg">
+            <div class="message message-warning alert alert-warning" hidden>
+                <span id="alert_msg"></span>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>{{header.column1}}</th>
+                    <th>{{header.column2}}</th>
+                    <th>{{header.column3}}</th>
+                    <th>{{header.column4}}</th>
+                    <th>{{header.column5}}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each tools}}
+                    {{#if this.isAvailable}}
+                        <tr>
+                            <td>{{this.id}}</td>
+                            <td>{{this.brand}}</td>
+                            <td>{{this.model}}</td>
+                            <td>{{this.descro}}</td>
+                            <td>{{this.idisep}}</td>
+                            <td><a id="borrow" value="/private/tools/{{this.id}}">Emprunter</a></td>
+                        </tr>          
+                    {{/if}}
+                {{/each}}
+                <tr id="formRow">
+                    <td><strong>+</strong></td>
+                    <td>
+                        <div id="brand" name="brand" contenteditable="true"></div>
+                    </td>
+                    <td>
+                        <div id="model" name="model" contenteditable="true"></div>
+                    </td>
+                    <td>
+                        <div id="descro" name="descro" contenteditable="true"></div>
+                    </td>
+                    <td>
+                        <div id="idisep" name="idisep" contenteditable="true"></div>
+                    </td>
+                    <td><a id="addTool">Ajouter le matériel</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="unavailable" class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>{{header.column1}}</th>
+                    <th>{{header.column2}}</th>
+                    <th>{{header.column3}}</th>
+                    <th>{{header.column4}}</th>
+                    <th>{{header.column5}}</th>
+                    <th>{{header.column8}}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each tools}}
+                    {{#if this.isAvailable}}
+
+                    {{else}}
+                        {{#if this.toValidate}}
+
+                        {{else}}
+                            <tr>
+                                <td>{{this.id}}</td>
+                                <td>{{this.brand}}</td>
+                                <td>{{this.model}}</td>
+                                <td>{{this.descro}}</td>
+                                <td>{{this.idisep}}</td>
+                                <td id="returnDate" data-value="{{this.returnDate}}">{{this.returnDate}}</td>
+                                <td><a href="/private/unborrow/{{this.id}}">Rendre le matériel</a></td>
+                            </tr>
+                        {{/if}}
+                    {{/if}}
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+    <script type="module" src="./scripts/common/selectDefaultTable.js"></script>
+    <script type="module" src="./scripts/common/dateExpired.js"></script>
+    <script type="module" src="./scripts/common/focusOnDiv.js"></script>
+    <script type="module" src="./scripts/common/showTab.js"></script>
+    <script type="module" src="./scripts/user/validateReturnDate.js"></script>
+    <script type="module" src="./scripts/user/addTool.js"></script>
+</body>

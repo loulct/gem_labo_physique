@@ -22,7 +22,7 @@ eventBus.onopen = () => {
 
             let data = {};
 
-            data["uid"]=cell.parentElement.parentElement.id
+            data["id"]=cell.parentElement.parentElement.id
             data["field"]=cell.id;
             data["value"]=cell.innerHTML.trim();
 
