@@ -1,3 +1,4 @@
+@import url("colors.css");
 .percentage-0:after {
   width: 0%;
 }
@@ -407,13 +408,13 @@
   line-height: 1;
   text-transform: uppercase;
   height: 40px;
-  margin-left: 130px;
-  background: repeating-linear-gradient(to right, #ddd, #ddd 1px, #fff 1px, #fff 5%);
+  margin-left: 10%;
+  background: repeating-linear-gradient(to right, var(--tertiary-gray), var(--tertiary-gray) 1px, var(--secondary-gray) 1px, var(--secondary-gray) 5%);
 }
 .percentage:after {
   content: "";
   display: block;
-  background-color: #317dc0;
+  background-color: var(--primary-color);
   margin-bottom: 10px;
   height: 90%;
   position: relative;
@@ -423,7 +424,7 @@
   cursor: pointer;
 }
 .percentage:hover:after, .percentage:focus:after {
-  background-color: #aaa;
+  background-color: var(--secondary-color);
 }
 
 .text {
@@ -431,8 +432,8 @@
   display: flex;
   align-items: center;
   height: 40px;
-  width: 130px;
-  background-color: white;
+  width: 10%;
+  background-color: var(--tertiary-gray);
   position: absolute;
   left: 0;
   justify-content: flex-end;
@@ -440,7 +441,7 @@
 
 dl {
   display: flex;
-  background-color: white;
+  background-color: var(--tertiary-gray);
   flex-direction: column;
   width: 100%;
   max-width: 700px;
@@ -451,11 +452,9 @@ dl {
 dt {
   align-self: flex-start;
   width: 100%;
-  font-weight: 700;
   display: block;
   text-align: center;
   font-size: 1.2em;
   font-weight: 700;
   margin-bottom: 20px;
-  margin-left: 130px;
-}/*# sourceMappingURL=stats.css.map */
+}/*# sourceMappingURL=statsTable.css.map */

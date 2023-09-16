@@ -1,11 +1,7 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" lang="en">
-  <head><link rel="stylesheet" type="text/css" hs-webfonts="true" href="https://fonts.googleapis.com/css?family=Lato|Lato:i,b,bi">
-    <title>Email template</title>
-    <meta property="og:title" content="Email template">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html>
+  <head>
+    <title>Pensez à rendre le matériel !</title>
+    <link rel="stylesheet" type="text/css" hs-webfonts="true" href="https://fonts.googleapis.com/css?family=Lato|Lato:i,b,bi">
     <style type="text/css">
       a{ 
         text-decoration: underline;
@@ -64,7 +60,7 @@
       <table role="presentation" width="100%">
         <tr>
           <td bgcolor="#00A4BD" align="center" style="color: white; padding-top: 10%;">
-            <h1> Pensez à rendre le matériel !</h1>  
+            <h1>Pensez à rendre le matériel !</h1>  
           </td>
         </tr>
       </table>
@@ -74,10 +70,10 @@
           <td>
             <h2>Le délai d'emprunt du matériel a expiré !</h2>
             <ul>
-              <li>Identifiant ISEP : <strong>{{tool.idISEP}}</strong></li>
+              <li>Identifiant ISEP : <strong>{{tool.idisep}}</strong></li>
               <li>Marque: <strong>{{tool.brand}}</strong></li>
               <li>Modèle : <strong>{{tool.model}}</strong></li>
-              <li>Description : <strong>{{tool.desc}}</strong></li>
+              <li>Description : <strong>{{tool.descro}}</strong></li>
             </ul>
             <h3>Date de retour du matériel : <strong style="color:red;">{{tool.returnDate}}</strong></h3>
             <p>
@@ -85,7 +81,7 @@
             </p>
             <a href="http://localhost:8888/private/tools">
                 <button> 
-                    Rendre le matériel emprunté
+                  Rendre le matériel emprunté
                 </button>
             </a>
           </td> 
