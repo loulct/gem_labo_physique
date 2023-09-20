@@ -1,34 +1,22 @@
 package com.example.starter;
 
-import java.util.Arrays;
-import java.util.TreeMap;
-import java.util.NavigableMap;
-import java.io.File;
-import java.util.Scanner;
-import java.nio.file.Path;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
-import java.lang.Integer;
-import java.util.Properties;
-import java.io.OutputStream;
-import java.io.FileOutputStream;
-import java.io.FileInputStream;
-import java.util.List;
+import com.example.starter.SqlClient;
+import com.example.starter.HandlebarsClient;
+import com.example.starter.EmailClient;
+
+import java.io.*;
+import java.lang.*;
+import java.util.*;
+import java.nio.file.*;
 import java.util.stream.Collectors;
-import java.util.Map;
-import java.util.Date;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.lang.Boolean;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.math.BigInteger;
 
 import io.vertx.core.Launcher;
 import io.vertx.ext.web.Router;
@@ -41,7 +29,6 @@ import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.auth.properties.PropertyFileAuthorization;
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.bridge.PermittedOptions;
@@ -53,13 +40,8 @@ import io.vertx.ext.mail.MailMessage;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-import com.example.starter.SqlClient;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.Row;
-import java.math.BigInteger;
-import java.util.concurrent.CompletableFuture;
-import java.lang.InterruptedException;
-import java.util.concurrent.ExecutionException;
 
 public class Main extends AbstractVerticle{
     public static void main(String[] args) {
@@ -79,8 +61,6 @@ public class Main extends AbstractVerticle{
     public void start() throws Exception {
 
         Pool pool = SqlClient.launch(vertx);
-
-        HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
         Router router = Router.router(vertx);
         router.route().handler(BodyHandler.create());
@@ -131,22 +111,13 @@ public class Main extends AbstractVerticle{
                         if(!date.isAfter(today)){
                             if(!Boolean.parseBoolean(entry.getString("toValidate"))){
                                 JsonObject data = new JsonObject().put("tool", entry);
-                                engine.render(data, "private/hbs/emails/expired.hbs", res -> {
-                                    if(res.succeeded()){
-                                        MailMessage email = new MailMessage()
-                                            .setFrom("gem-labo-physique@gem-labo.com")
-                                            .setTo(Arrays.asList(
-                                                entry.getString("email"),
-                                                "admin@gem-labo.com"))
-                                            .setBounceAddress("gem-labo-physique@gem-labo.com")
-                                            .setSubject("GEM LABO PHYSIQUE : Délai d'emprunt expiré !")
-                                            .setHtml(res.result().toString());
-                
-                                        resultsMail(email);    
-                                    }else{
-                                        System.out.println(res.cause());
-                                    }
-                                });
+                                HandlebarsClient.timerRender(
+                                    vertx, 
+                                    data, 
+                                    "private/hbs/emails/expired.hbs", 
+                                    "Délai d'emprunt expiré !", 
+                                    entry.getString("email")
+                                );
                             }
                         }
                     });
@@ -186,13 +157,7 @@ public class Main extends AbstractVerticle{
                             .forEach(e -> ((JsonObject) e).put("percentages", (((JsonObject) e).getInteger("counter")*100)/total_counter));
                         }
 
-                        engine.render(result, "private/hbs/main/admin.hbs", res -> {
-                            if(res.succeeded()){
-                                context.response().end(res.result());
-                            }else{
-                                context.fail(res.cause());
-                            }
-                        });
+                        HandlebarsClient.simpleRender(vertx, context, result, "private/hbs/main/admin.hbs");
                     });
                 }else{
                     System.out.println("User isn't admin");
@@ -208,12 +173,12 @@ public class Main extends AbstractVerticle{
             routingContext.response().setStatusCode(302).putHeader("Location", "/private/tools").end();
         });
 
-        router.route("/private/tools/:toolID").handler(context -> handleGetTool(context, engine, pool));
+        router.route("/private/tools/:toolID").handler(context -> handleGetTool(context, pool));
         router.route("/private/admin/del/:toolID").handler(context -> handleDelTool(context, pool));
         router.route("/private/unborrow/:toolID").handler(context -> handleUnborrowTool(context, pool));
-        router.route("/private/admin/validate/:toolID").handler(context -> handleValidateTool(context, engine, pool));
+        router.route("/private/admin/validate/:toolID").handler(context -> handleValidateTool(context, pool));
         router.route("/private/add").handler(context -> handleAddTool(context, pool));
-        router.route("/private/tools").handler(context -> handleListTool(context, engine, pool));
+        router.route("/private/tools").handler(context -> handleListTool(context, pool));
 
         router.route("/loginhandler").handler(FormLoginHandler.create(authn).setDirectLoggedInOKURL("/private/admin"))
             .failureHandler(context -> {
@@ -239,24 +204,15 @@ public class Main extends AbstractVerticle{
                     FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
                     properties.store(outputStream, null);
 
-                    engine.render(data, "private/hbs/emails/password.hbs", res -> {
-                        if(res.succeeded()){
-                            MailMessage email = new MailMessage()
-                                .setFrom("gem-labo-physique@gem-labo.com")
-                                .setTo(Arrays.asList(
-                                    userEmail,
-                                    "admin@gem-labo.com"))
-                                .setBounceAddress("gem-labo-physique@gem-labo.com")
-                                .setSubject("GEM LABO PHYSIQUE : Mot de passe mis à jour")
-                                .setHtml(res.result().toString());
-
-                            resultsMail(email);
-
-                            context.response().putHeader("location", "/login.html").setStatusCode(302).end();
-                        }else{
-                            context.fail(res.cause());
-                        }
-                    });
+                    HandlebarsClient.redirectRender(
+                        vertx,
+                        context,
+                        data,
+                        "private/hbs/emails/password.hbs",
+                        "/login.html",
+                        "Mot de passe mis à jour",
+                        userEmail
+                    );
                 }else{
                     System.out.println("Ce compte n'existe pas");
                     context.response()
@@ -289,24 +245,15 @@ public class Main extends AbstractVerticle{
                     FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
                     properties.store(outputStream, null);
 
-                    engine.render(data, "private/hbs/emails/setup.hbs", res -> {
-                        if(res.succeeded()){
-                            MailMessage email = new MailMessage()
-                                .setFrom("gem-labo-physique@gem-labo.com")
-                                .setTo(Arrays.asList(
-                                    userEmail,
-                                    "admin@gem-labo.com"))
-                                .setBounceAddress("gem-labo-physique@gem-labo.com")
-                                .setSubject("GEM LABO PHYSIQUE : Votre compte a été créé")
-                                .setHtml(res.result().toString());
-        
-                            resultsMail(email);
-        
-                            context.response().putHeader("location", "/login.html").setStatusCode(302).end();
-                        }else{
-                            context.fail(res.cause());
-                        }
-                    });
+                    HandlebarsClient.redirectRender(
+                        vertx,
+                        context,
+                        data,
+                        "private/hbs/emails/setup.hbs",
+                        "/login.html",
+                        "Votre compte a été créé",
+                        userEmail
+                    );
                 }else{
                     System.out.println("Ce compte existe déjà !");
                     context.response()
@@ -331,7 +278,7 @@ public class Main extends AbstractVerticle{
         vertx.createHttpServer().requestHandler(router).listen(8888);
     }
 
-    private void handleGetTool(RoutingContext context, HandlebarsTemplateEngine engine, Pool pool){
+    private void handleGetTool(RoutingContext context, Pool pool){
         String toolID = context.request().getParam("toolID");
         String date = context.request().getParam("returnDate");
         String username = context.user().principal().getString("username");
@@ -347,25 +294,15 @@ public class Main extends AbstractVerticle{
                         return new JsonObject().put("tool", tool);
                     });
             }).thenAccept(result -> {
-                engine.render(result, "private/hbs/emails/borrowed.hbs", res -> {
-                    if(res.succeeded()){
-                        MailMessage email = new MailMessage()
-                            .setFrom("gem-labo-physique@gem-labo.com")
-                            .setTo(Arrays.asList(
-                                username,
-                                "admin@gem-labo.com"))
-                            .setBounceAddress("gem-labo-physique@gem-labo.com")
-                            .setSubject("GEM LABO PHYSIQUE : Matériel emprunté !")
-                            .setHtml(res.result().toString());
-
-                        resultsMail(email);
-
-                        response.putHeader("location", "/private/tools").setStatusCode(302).end();
-
-                    }else{
-                        context.fail(res.cause());
-                    }
-                });
+                HandlebarsClient.redirectRender(
+                    vertx,
+                    context,
+                    result,
+                    "private/hbs/emails/borrowed.hbs",
+                    "/private/tools",
+                    "Matériel emprunté !",
+                    username
+                );
             });
         }
     }
@@ -381,7 +318,7 @@ public class Main extends AbstractVerticle{
         }
     }
 
-    private void handleValidateTool(RoutingContext context, HandlebarsTemplateEngine engine, Pool pool){
+    private void handleValidateTool(RoutingContext context, Pool pool){
         String toolID = context.request().getParam("toolID");
         HttpServerResponse response = context.response();
         if(toolID == null){
@@ -397,26 +334,15 @@ public class Main extends AbstractVerticle{
                 System.out.println(result);
                 SqlClient.validateTool(pool, new BigInteger(toolID));
 
-                engine.render(result, "private/hbs/emails/validated.hbs", res -> {
-                    if(res.succeeded()){
-                        MailMessage email = new MailMessage()
-                            .setFrom("gem-labo-physique@gem-labo.com")
-                            .setTo(Arrays.asList(
-                                result.getString("email"),
-                                "admin@gem-labo.com"))
-                            .setBounceAddress("gem-labo-physique@gem-labo.com")
-                            .setSubject("GEM LABO PHYSIQUE : Retour du matériel validé !")
-                            .setHtml(res.result().toString());
-
-                        resultsMail(email);
-
-                        response.putHeader("location", "/private/admin").setStatusCode(302).end();
-
-                    }else{
-                        context.fail(res.cause());
-                    }
-                });
-
+                HandlebarsClient.redirectRender(
+                    vertx,
+                    context,
+                    result,
+                    "private/hbs/emails/validated.hbs",
+                    "/private/admin",
+                    "Retour du matériel validé !",
+                    result.getString("email")
+                );
             });
         }
     }
@@ -444,7 +370,7 @@ public class Main extends AbstractVerticle{
         }
     }
 
-    private void handleListTool(RoutingContext context, HandlebarsTemplateEngine engine, Pool pool){
+    private void handleListTool(RoutingContext context, Pool pool){
         String username = context.user().principal().getString("username");
         SqlClient.getUserInfo(pool, username)
         .thenCompose(user -> {
@@ -454,27 +380,12 @@ public class Main extends AbstractVerticle{
                 });
         }).thenAccept(result -> {
             result.put("header", header);
-            engine.render(result, "private/hbs/main/user.hbs", res -> {
-                if(res.succeeded()){
-                    context.response().end(res.result());
-                }else{
-                    context.fail(res.cause());
-                }
-            });
-        });
-    }
-
-    public void resultsMail(MailMessage email) {
-        MailClient mailClient = MailClient.createShared(vertx, new MailConfig().setPort(25));
-
-        mailClient.sendMail(email, result -> {
-            if (result.succeeded()) {
-                System.out.println(result.result());
-                System.out.println("Mail sent");
-            } else {
-                System.out.println("got exception");
-                result.cause().printStackTrace();
-            }
+            HandlebarsClient.simpleRender(
+                vertx, 
+                context, 
+                result, 
+                "private/hbs/main/user.hbs"
+            );
         });
     }
 
