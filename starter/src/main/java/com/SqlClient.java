@@ -136,7 +136,7 @@ public class SqlClient extends AbstractVerticle {
     public static CompletableFuture<JsonArray> adminView(Pool pool){
         CompletableFuture<JsonArray> future = new CompletableFuture<>();
         JsonArray result = new JsonArray();
-        pool.query("SELECT * FROM public.tools ORDER BY id ASC")
+        pool.query("SELECT * FROM public.tools ORDER BY counter DESC;")
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
@@ -220,7 +220,7 @@ public class SqlClient extends AbstractVerticle {
     public static CompletableFuture<JsonArray> getHistory(Pool pool){
         CompletableFuture<JsonArray> future = new CompletableFuture<>();
         JsonArray result = new JsonArray();
-        pool.query("SELECT t.id, t.idisep, ROUND(AVG(h.\"returnDate\" - h.\"borrowDate\"), 0) AS avgdays FROM public.history AS h LEFT JOIN public.tools AS t ON t.id = h.toolid GROUP BY t.id, t.idisep")
+        pool.query("SELECT t.id, t.idisep, ROUND(AVG(h.\"returnDate\" - h.\"borrowDate\"), 0) AS avgdays FROM public.history AS h LEFT JOIN public.tools AS t ON t.id = h.toolid GROUP BY t.id, t.idisep ORDER BY avgdays ASC;")
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
