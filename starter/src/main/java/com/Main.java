@@ -133,7 +133,8 @@ public class Main extends AbstractVerticle{
                             if(!Boolean.parseBoolean(entry.getString("toValidate"))){
                                 JsonObject data = new JsonObject().put("tool", entry);
                                 HandlebarsClient.timerRender(
-                                    vertx, 
+                                    vertx,
+                                    pool,
                                     data, 
                                     "private/hbs/emails/expired.hbs", 
                                     "Délai d'emprunt expiré !", 
@@ -226,6 +227,7 @@ public class Main extends AbstractVerticle{
                     HandlebarsClient.redirectRender(
                         vertx,
                         context,
+                        pool,
                         data,
                         "private/hbs/emails/password.hbs",
                         "/login.html",
@@ -273,6 +275,7 @@ public class Main extends AbstractVerticle{
                             HandlebarsClient.redirectRender(
                                 vertx,
                                 context,
+                                pool,
                                 data,
                                 "private/hbs/emails/setup.hbs",
                                 "/login.html",
@@ -325,6 +328,7 @@ public class Main extends AbstractVerticle{
                 HandlebarsClient.redirectRender(
                     vertx,
                     context,
+                    pool,
                     result,
                     "private/hbs/emails/borrowed.hbs",
                     "/private/tools",
@@ -365,6 +369,7 @@ public class Main extends AbstractVerticle{
                 HandlebarsClient.redirectRender(
                     vertx,
                     context,
+                    pool,
                     result,
                     "private/hbs/emails/validated.hbs",
                     "/private/admin",
