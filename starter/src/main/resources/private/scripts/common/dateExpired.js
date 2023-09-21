@@ -1,5 +1,5 @@
 window.onload = function(){
-    let dts =  document.querySelectorAll('[id=returnDate]');
+    let dts =  document.querySelectorAll('[id=returndate]');
     let today = new Date();
 
     dts.forEach(function(dt){

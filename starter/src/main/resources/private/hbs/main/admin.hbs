@@ -28,7 +28,7 @@
         <ul class="secondary-nav horizontal gray">
             <li><a id="default" class="nav-link" onclick="showTab(event, 'available')">Matériels disponibles</a></li>
             <li><a class="nav-link" onclick="showTab(event, 'unavailable')">Matériels empruntés</a></li>
-            <li><a class="nav-link" onclick="showTab(event, 'toValidate')">Matériel en attente de validation</a></li>
+            <li><a class="nav-link" onclick="showTab(event, 'tovalidate')">Matériel en attente de validation</a></li>
             <li><a class="nav-link" onclick="showTab(event, 'statistics')">Statistiques</a></li>
         </ul>
     </div>
@@ -52,7 +52,7 @@
             </thead>
             <tbody>
                 {{#each tools}}
-                    {{#if this.isAvailable}}
+                    {{#if this.isavailable}}
                         <tr id="{{this.id}}">
                             <td>{{this.id}}</td>
                             <td>
@@ -98,10 +98,10 @@
             </thead>
             <tbody>
                 {{#each tools}}
-                    {{#if this.isAvailable}}
+                    {{#if this.isavailable}}
 
                     {{else}}
-                        {{#if this.toValidate}}
+                        {{#if this.tovalidate}}
 
                         {{else}}
                             <tr>
@@ -111,7 +111,7 @@
                                 <td>{{this.descro}}</td>
                                 <td>{{this.idisep}}</td>
                                 <td>{{this.email}}</td>
-                                <td id="returnDate" data-value="{{this.returnDate}}">{{this.returnDate}}</td>
+                                <td id="returndate" data-value="{{this.returndate}}">{{this.returndate}}</td>
                             </tr>
                         {{/if}}
                     {{/if}}
@@ -120,7 +120,7 @@
         </table>
     </div>
 
-    <div id="toValidate" class="table">
+    <div id="tovalidate" class="table">
         <table>
             <thead>
                 <tr>
@@ -136,7 +136,7 @@
             </thead>
             <tbody>
                 {{#each tools}}
-                    {{#if this.toValidate}}
+                    {{#if this.tovalidate}}
                         <tr>
                             <td>{{this.id}}</td>
                             <td>{{this.brand}}</td>
@@ -144,7 +144,7 @@
                             <td>{{this.descro}}</td>
                             <td>{{this.idisep}}</td>
                             <td>{{this.email}}</td>
-                            <td id="returnDate" data-value="{{this.returnDate}}">{{this.returnDate}}</td>
+                            <td id="returndate" data-value="{{this.returndate}}">{{this.returndate}}</td>
                             <td><a href="/private/admin/validate/{{this.id}}">Valider le retour</a></td>
                         </tr>
                     {{/if}}
