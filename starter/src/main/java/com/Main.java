@@ -84,49 +84,6 @@ public class Main extends AbstractVerticle{
         MongoAuthenticationOptions mongooptions = new MongoAuthenticationOptions();
         MongoAuthentication authenticationProvider = MongoAuthentication.create(mongoClient, mongooptions);
 
-        /*
-        MongoAuthorizationOptions mongoAuthzOptions = new MongoAuthorizationOptions()
-            .setCollectionName("user")
-            .setRoleField("role")
-            .setUsernameField("username");
-        MongoAuthorization authorizationProvider = MongoAuthorization.create("test", mongoClient, mongoAuthzOptions);
-        µ/
-
-        /*JsonObject authInfo = new JsonObject()
-            .put("username", "tim@test.test")
-            .put("password", "sausages");
-
-        authenticationProvider.authenticate(authInfo)
-            .onSuccess(user -> System.out.println("User: " + user.principal()))
-            .onFailure(err -> {
-                System.out.println(err);
-            }
-        );*/
-
-        /*String hashedPassword = authenticationProvider.hash(
-            "pbkdf2",
-            "mySalt",
-            "sausages"
-        );
-        JsonObject user1 = new JsonObject().put("_id", 1).put("username", "tim").put("password", hashedPassword);
-
-        mongoClient.save("user", user1)
-        .compose(id -> {
-            System.out.println("Inserted _id: " + id);
-            return mongoClient.find("users", new JsonObject().put("_id", 1));
-        })
-        .compose(res -> {
-            System.out.println("Name is " + res.get(0).getString("username"));
-            return mongoClient.find("users", new JsonObject().put("_id", 12346));
-        })
-        .onComplete(ar -> {
-            if (ar.succeeded()) {
-                System.out.println("User added");
-            } else {
-                ar.cause().printStackTrace();
-            }
-        });*/
-
         Pool pool = SqlClient.launch(vertx);
 
         Router router = Router.router(vertx);
@@ -158,9 +115,6 @@ public class Main extends AbstractVerticle{
         router
             .route("/eventbus/*")
             .subRouter(sockJSHandler.bridge(options));
-
-        //PropertyFileAuthentication authn = PropertyFileAuthentication.create(vertx, "vertx-users.properties");
-        //PropertyFileAuthorization authorizationProvider = PropertyFileAuthorization.create(vertx, "vertx-roles.properties");
 
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -253,20 +207,22 @@ public class Main extends AbstractVerticle{
         );
 
         router.route("/forgotpassword").handler(context -> {
+            String username = context.request().getParam("username").toLowerCase();
+            String password = UUID.randomUUID().toString();
 
-            String userEmail = context.request().getParam("username").toLowerCase();
-            String uuid = UUID.randomUUID().toString();
+            JsonObject data = new JsonObject().put("username", username).put("password", password);
 
-            JsonObject data = new JsonObject().put("username", userEmail).put("password", uuid);
+            String hashedPassword = authenticationProvider.hash(
+                "pbkdf2",
+                "mySalt",
+                password
+            );
+            JsonObject update = new JsonObject().put("$set", new JsonObject().put("password", hashedPassword));
 
-            Properties properties = new Properties();
-            try{
-                properties.load(new FileInputStream("src/main/resources/vertx-users.properties"));
-                if(properties.getProperty("user." + userEmail) != null){
-                    properties.put("user." + userEmail, uuid);
-                    FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
-                    properties.store(outputStream, null);
-
+            mongoClient.findOneAndUpdate("user", new JsonObject().put("username", username), update, res -> {
+                if(res.succeeded() && res.result() != null){
+                    System.out.println("Utilisateur trouvé.");
+                    System.out.println("Mot de passe mis à jour.");
                     HandlebarsClient.redirectRender(
                         vertx,
                         context,
@@ -274,60 +230,73 @@ public class Main extends AbstractVerticle{
                         "private/hbs/emails/password.hbs",
                         "/login.html",
                         "Mot de passe mis à jour",
-                        userEmail
+                        username
                     );
                 }else{
-                    System.out.println("Ce compte n'existe pas");
+                    System.out.println("Cet utilisateur n'existe pas.");
                     context.response()
                         .putHeader("location", "/forgotpassword.html")
                         .setStatusCode(302)
                         .end();
-                    // TODO add alert message in html
                 }
-            }catch(IOException e){
-                System.out.println(e);
-            }
+            });
         });
 
         router.route("/signuphandler").handler(context -> {
-
-            String userEmail = context.request().getParam("lastname").toLowerCase() + 
+            String username = context.request().getParam("lastname").toLowerCase() + 
                 "." + 
                 context.request().getParam("firstname").toLowerCase() +
                 "@gem-labo.com";
-
-            String uuid = UUID.randomUUID().toString();
-
-            JsonObject data = new JsonObject().put("username", userEmail).put("password", uuid);
-
-            Properties properties = new Properties();
-            try{
-                properties.load(new FileInputStream("src/main/resources/vertx-users.properties"));
-                if(properties.getProperty("user." + userEmail) == null){
-                    properties.put("user." + userEmail, uuid);
-                    FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
-                    properties.store(outputStream, null);
-
-                    HandlebarsClient.redirectRender(
-                        vertx,
-                        context,
-                        data,
-                        "private/hbs/emails/setup.hbs",
-                        "/login.html",
-                        "Votre compte a été créé",
-                        userEmail
-                    );
+            String password = UUID.randomUUID().toString();
+            JsonObject data = new JsonObject().put("username", username).put("password", password);
+            
+            String hashedPassword = authenticationProvider.hash(
+                "pbkdf2",
+                "mySalt",
+                password
+            );
+            JsonObject user = new JsonObject().put("username", username).put("password", hashedPassword).put("role", "user");
+           
+            mongoClient.find("user", new JsonObject().put("username", username), findOneRes -> {
+                System.out.println(findOneRes.result());
+                if (findOneRes.succeeded() && findOneRes.result().isEmpty()){
+                    mongoClient.save("user", user, saveRes -> {
+                        if(saveRes.succeeded()){
+                            HandlebarsClient.redirectRender(
+                                vertx,
+                                context,
+                                data,
+                                "private/hbs/emails/setup.hbs",
+                                "/login.html",
+                                "Votre compte a été créé",
+                                username
+                            );
+                            context.response()
+                                .putHeader("location", "/login.html")
+                                .setStatusCode(302)
+                                .end();
+                        }else{
+                            System.out.println(saveRes.cause());
+                            context.response()
+                                .putHeader("location", "/signup.html")
+                                .setStatusCode(302)
+                                .end();
+                        }
+                    });
+                }else if(findOneRes.failed()){
+                    System.out.println(findOneRes.cause());
+                    context.response()
+                        .putHeader("location", "/signup.html")
+                        .setStatusCode(302)
+                        .end();
                 }else{
                     System.out.println("Ce compte existe déjà !");
                     context.response()
                         .putHeader("location", "/signup.html")
                         .setStatusCode(302)
                         .end();
-                    // TODO add alert message in html
                 }
-            }catch(IOException e){
-                System.out.println(e);
-            }
+            });
         });
 
         router.route("/logout").handler(context -> {
