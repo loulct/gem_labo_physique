@@ -43,6 +43,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.Row;
 
+import io.vertx.ext.mongo.*;
+import io.vertx.core.Vertx;
+import io.vertx.ext.auth.mongo.*;
+
 public class Main extends AbstractVerticle{
     public static void main(String[] args) {
         Launcher.executeCommand("run", Main.class.getName());
@@ -59,6 +63,69 @@ public class Main extends AbstractVerticle{
 
     @Override
     public void start() throws Exception {
+
+        JsonObject config = Vertx.currentContext().config();
+
+        String uri = config.getString("mongo_uri");
+        if (uri == null) {
+            uri = "mongodb://localhost:27017";
+        }
+        String db = config.getString("mongo_db");
+        if (db == null) {
+            db = "gemlabo";
+        }
+
+        JsonObject mongoconfig = new JsonObject()
+        .put("connection_string", uri)
+        .put("db_name", db);
+
+        MongoClient mongoClient = MongoClient.createShared(vertx, mongoconfig);
+
+        MongoAuthenticationOptions mongooptions = new MongoAuthenticationOptions();
+        MongoAuthentication authenticationProvider = MongoAuthentication.create(mongoClient, mongooptions);
+
+        /*
+        MongoAuthorizationOptions mongoAuthzOptions = new MongoAuthorizationOptions()
+            .setCollectionName("user")
+            .setRoleField("role")
+            .setUsernameField("username");
+        MongoAuthorization authorizationProvider = MongoAuthorization.create("test", mongoClient, mongoAuthzOptions);
+        µ/
+
+        /*JsonObject authInfo = new JsonObject()
+            .put("username", "tim@test.test")
+            .put("password", "sausages");
+
+        authenticationProvider.authenticate(authInfo)
+            .onSuccess(user -> System.out.println("User: " + user.principal()))
+            .onFailure(err -> {
+                System.out.println(err);
+            }
+        );*/
+
+        /*String hashedPassword = authenticationProvider.hash(
+            "pbkdf2",
+            "mySalt",
+            "sausages"
+        );
+        JsonObject user1 = new JsonObject().put("_id", 1).put("username", "tim").put("password", hashedPassword);
+
+        mongoClient.save("user", user1)
+        .compose(id -> {
+            System.out.println("Inserted _id: " + id);
+            return mongoClient.find("users", new JsonObject().put("_id", 1));
+        })
+        .compose(res -> {
+            System.out.println("Name is " + res.get(0).getString("username"));
+            return mongoClient.find("users", new JsonObject().put("_id", 12346));
+        })
+        .onComplete(ar -> {
+            if (ar.succeeded()) {
+                System.out.println("User added");
+            } else {
+                ar.cause().printStackTrace();
+            }
+        });*/
 
         Pool pool = SqlClient.launch(vertx);
 
@@ -92,8 +159,8 @@ public class Main extends AbstractVerticle{
             .route("/eventbus/*")
             .subRouter(sockJSHandler.bridge(options));
 
-        PropertyFileAuthentication authn = PropertyFileAuthentication.create(vertx, "vertx-users.properties");
-        PropertyFileAuthorization authorizationProvider = PropertyFileAuthorization.create(vertx, "vertx-roles.properties");
+        //PropertyFileAuthentication authn = PropertyFileAuthentication.create(vertx, "vertx-users.properties");
+        //PropertyFileAuthorization authorizationProvider = PropertyFileAuthorization.create(vertx, "vertx-roles.properties");
 
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -125,16 +192,15 @@ public class Main extends AbstractVerticle{
             }
         }, 0, 24 * 60 * 60 * 1000);
 
-        router.route("/private/*").handler(RedirectAuthHandler.create(authn, "/login.html"));
+        router.route("/private/*").handler(RedirectAuthHandler.create(authenticationProvider, "/login.html"));
 
         router.route("/private/*").handler(StaticHandler.create("src/main/resources/private").setCachingEnabled(false));
 
         router.route("/private/admin").handler(context -> {
             if(context.user() == null){
                 context.response().setStatusCode(302).putHeader("Location", "/private/tools").end();
-            }
-            authorizationProvider.getAuthorizations(context.user()).onSuccess(v -> {
-                if (RoleBasedAuthorization.create("admin").match(context.user())){
+            }else{
+                if(context.user().principal().getString("role").equals("admin")){
                     System.out.println("User is admin");
                     String username = context.user().principal().getString("username");
                     SqlClient.getUserInfo(pool, username)
@@ -163,10 +229,7 @@ public class Main extends AbstractVerticle{
                     System.out.println("User isn't admin");
                     context.response().setStatusCode(302).putHeader("Location", "/private/tools").end();
                 }
-            }).onFailure(err -> {
-                System.out.println("User isn't listed in PropertyFileAuthorization file");
-                context.response().setStatusCode(302).putHeader("Location", "/private/tools").end();
-            });
+            }
         });
 
         router.errorHandler(404, routingContext -> {
@@ -180,7 +243,7 @@ public class Main extends AbstractVerticle{
         router.route("/private/add").handler(context -> handleAddTool(context, pool));
         router.route("/private/tools").handler(context -> handleListTool(context, pool));
 
-        router.route("/loginhandler").handler(FormLoginHandler.create(authn).setDirectLoggedInOKURL("/private/admin"))
+        router.route("/loginhandler").handler(FormLoginHandler.create(authenticationProvider).setDirectLoggedInOKURL("/private/admin"))
             .failureHandler(context -> {
                 context.response()
                     .putHeader("location", "/login.html")
