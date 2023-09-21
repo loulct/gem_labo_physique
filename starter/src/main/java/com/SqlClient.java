@@ -211,4 +211,10 @@ public class SqlClient extends AbstractVerticle {
         return future;
     }
 
+    public static void addUser(Pool pool, String[] args){
+        pool.query(String.format("INSERT INTO public.users(firstname, lastname, phone, \"class\", email, \"role\") VALUES('%s', '%s', '%s', '%s', '%s', '%s');", args[0], args[1], args[2], args[3], args[4], args[5]))
+            .execute()
+            .onFailure(Throwable::printStackTrace);
+    }
+
 }

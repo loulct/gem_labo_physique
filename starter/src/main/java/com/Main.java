@@ -256,12 +256,20 @@ public class Main extends AbstractVerticle{
                 password
             );
             JsonObject user = new JsonObject().put("username", username).put("password", hashedPassword).put("role", "user");
-           
+
             mongoClient.find("user", new JsonObject().put("username", username), findOneRes -> {
-                System.out.println(findOneRes.result());
                 if (findOneRes.succeeded() && findOneRes.result().isEmpty()){
                     mongoClient.save("user", user, saveRes -> {
                         if(saveRes.succeeded()){
+
+                            SqlClient.addUser(pool, new String[]{context.request().getParam("firstname"), 
+                                context.request().getParam("lastname"),
+                                context.request().getParam("phone"),
+                                context.request().getParam("schoolclass"),
+                                username,
+                                "user"
+                            });
+
                             HandlebarsClient.redirectRender(
                                 vertx,
                                 context,
@@ -277,24 +285,12 @@ public class Main extends AbstractVerticle{
                                 .end();
                         }else{
                             System.out.println(saveRes.cause());
-                            context.response()
-                                .putHeader("location", "/signup.html")
-                                .setStatusCode(302)
-                                .end();
                         }
                     });
                 }else if(findOneRes.failed()){
                     System.out.println(findOneRes.cause());
-                    context.response()
-                        .putHeader("location", "/signup.html")
-                        .setStatusCode(302)
-                        .end();
                 }else{
                     System.out.println("Ce compte existe déjà !");
-                    context.response()
-                        .putHeader("location", "/signup.html")
-                        .setStatusCode(302)
-                        .end();
                 }
             });
         });
