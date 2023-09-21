@@ -136,7 +136,7 @@ public class SqlClient extends AbstractVerticle {
     public static CompletableFuture<JsonArray> adminView(Pool pool){
         CompletableFuture<JsonArray> future = new CompletableFuture<>();
         JsonArray result = new JsonArray();
-        pool.query("SELECT * FROM public.tools ORDER BY counter DESC;")
+        pool.query("SELECT tool.*, u.email FROM public.tools AS tool LEFT JOIN public.users AS u on u.id = tool.userid ORDER BY counter DESC;")
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
