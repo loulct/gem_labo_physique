@@ -217,4 +217,25 @@ public class SqlClient extends AbstractVerticle {
             .onFailure(Throwable::printStackTrace);
     }
 
+    public static CompletableFuture<JsonArray> getHistory(Pool pool){
+        CompletableFuture<JsonArray> future = new CompletableFuture<>();
+        JsonArray result = new JsonArray();
+        pool.query("SELECT t.id, t.idisep, ROUND(AVG(h.\"returnDate\" - h.\"borrowDate\"), 0) AS avgdays FROM public.history AS h LEFT JOIN public.tools AS t ON t.id = h.toolid GROUP BY t.id, t.idisep")
+            .execute()
+            .onSuccess(rows -> {
+                for(Row row : rows){
+                    result.add(row.toJson());
+                }
+                future.complete(result);
+            })
+            .onFailure(Throwable::printStackTrace);
+
+        return future;
+    }
+
+    public static void addHistory(Pool pool, String[] args, BigInteger id){
+        pool.query(String.format("INSERT INTO public.history(\"returnDate\", \"borrowDate\", toolid) VALUES('%s', '%s', '%d');", args[0], args[1], id))
+            .execute()
+            .onFailure(Throwable::printStackTrace);
+    }
 }

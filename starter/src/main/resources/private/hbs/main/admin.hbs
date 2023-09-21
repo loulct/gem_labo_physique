@@ -160,6 +160,13 @@
                 <dd class="percentage percentage-{{this.percentages}}"><span class="text">{{this.idisep}}</span></dd>
             {{/each}}
         </dl>
+
+        <dl>
+            <dt>Durée d'emprunt moyen par matériel</dt>
+            {{#each tools}}
+                <dd class="percentage percentage-{{this.percentages}}"><span class="text">{{this.idisep}}</span></dd>
+            {{/each}}
+        </dl>
     </div>
     <script type="module" src="./scripts/common/selectDefaultTable.js"></script>
     <script type="module" src="./scripts/common/dateExpired.js"></script>

@@ -325,6 +325,12 @@ public class Main extends AbstractVerticle{
                         return new JsonObject().put("tool", tool);
                     });
             }).thenAccept(result -> {
+                LocalDate today = LocalDate.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                String stringtoday = today.format(formatter); 
+                
+                SqlClient.addHistory(pool, new String[]{date, stringtoday}, new BigInteger(toolID));
+                
                 HandlebarsClient.redirectRender(
                     vertx,
                     context,
