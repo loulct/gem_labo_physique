@@ -69,6 +69,7 @@ public class Main extends AbstractVerticle{
         String uri = config.getString("mongo_uri");
         if (uri == null) {
             uri = "mongodb://localhost:27017";
+            //uri = "mongodb://user:password@mongodb:27016";
         }
         String db = config.getString("mongo_db");
         if (db == null) {
@@ -128,9 +129,9 @@ public class Main extends AbstractVerticle{
                 .thenAccept(result -> {
                     result.stream().forEach(e -> {
                         JsonObject entry = (JsonObject) e;
-                        LocalDate date = LocalDate.parse(entry.getString("returnDate"), formatter);
+                        LocalDate date = LocalDate.parse(entry.getString("returndate"), formatter);
                         if(!date.isAfter(today)){
-                            if(!Boolean.parseBoolean(entry.getString("toValidate"))){
+                            if(!Boolean.parseBoolean(entry.getString("tovalidate"))){
                                 JsonObject data = new JsonObject().put("tool", entry);
                                 HandlebarsClient.timerRender(
                                     vertx,
@@ -325,7 +326,7 @@ public class Main extends AbstractVerticle{
 
     private void handleGetTool(RoutingContext context, Pool pool){
         String toolID = context.request().getParam("toolID");
-        String date = context.request().getParam("returnDate");
+        String date = context.request().getParam("returndate");
         String username = context.user().principal().getString("username");
 
         HttpServerResponse response = context.response();

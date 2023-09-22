@@ -108,9 +108,13 @@ Statistiques sur les matériels emprunts :
 
 ### Matériel emprunté par les utilisateur
 
+![](./markdown_resources/adminViewBorrowed.png)
+
 ### Validation d'un retour de matériel
 Quand un matériel est rapporté, le retour effectif du matériel doit être validé par un membre du personnel du 
 laboratoire.
+
+![](./markdown_resources/validateReturn.png)
 
 ### Email de confirmation de la validation du retour du matériel
 Un administrateur valide le retour du matériel 
