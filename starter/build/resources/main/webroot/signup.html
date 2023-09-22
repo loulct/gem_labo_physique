@@ -1,0 +1,76 @@
+<html>
+    <head>
+        <title>GEM LABO PHYSIQUE</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="Pragma" content="no-cache"/>
+        <meta http-equiv="Expires" content="0"/>
+        <link rel="icon" type="image/x-icon" href="./styles/ico/favicon.ico">
+        <link rel="stylesheet" type="text/css" href="./styles/css/main.css" as="main">
+        <link rel="stylesheet" type="text/css" href="./styles/css/signup.css" as="signup">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </head>
+    <body>
+        <div id="wrap">
+            <div id="header">
+                <h1>GEM LABO PHYSIQUE</h1>
+            </div>
+            <main id="signupcontent" class="container">
+                <div class="card">
+                    <div class="goback">
+                        <a class="goback-link" href="/login.html">Retour</a>
+                    </div>
+                    <div class="text-info">
+                        <p style="margin:0%;">Inscrivez-vous pour utiliser GEM LABO PHYSIQUE</p>
+                    </div>
+                    <form action="/signuphandler" class="signup" id="signup" method="post">
+                        <div class="form">
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><label for="lastname">Nom</label></span>
+                                </div>
+                                <input id="lastname" name="lastname" type="text" class="form-control" placeholder="Jean" required/>
+                            </div>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><label for="firstname">Prénom</label></span>
+                                </div>
+                                <input id="firstname" name="firstname" type="text" class="form-control" placeholder="Smith" required/>
+                            </div>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><label for="phone">Téléphone</label></span>
+                                </div>
+                                <input id="phone" name="phone" type="phone" class="form-control" placeholder="06 __ __ __ __" required/>
+                            </div>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><label for="schoolclass">Classe</label></span>
+                                </div>
+                                <select name="schoolclass" id="schoolclass" class="form-control" required>
+                                    <option value="I1">I1</option>
+                                    <option value="I2">I2</option>
+                                    <option value="P1A">P1A</option>
+                                    <option value="P1B">P1B</option>
+                                    <option value="P1C">P1C</option>
+                                    <option value="P2A">P2A</option>
+                                    <option value="P2B">P2B</option>
+                                    <option value="P2C">P2C</option>
+                                    <option value="A1">A1</option>
+                                    <option value="A2">A2</option>
+                                    <option value="A3">A3</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn" id="btn">
+                                <span class="fa fa-sign-in"></span>
+                                <span trspan="signup-span">S'inscrire</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+        <div>
+    </body>
+
+    <script type="module" id="helper" name="signup" src="./scripts/validateForm.js"></script>
+</html>

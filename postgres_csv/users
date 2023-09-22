@@ -1,0 +1,6 @@
+id,firstname,lastname,phone,class,email,role
+1,Louis,Lecart,0608726848,A3,lecart-louis@orange.fr,admin
+2,Gilles,Carpentier,0608726849,A3,carpentier.gilles@gem-labo.com,admin
+3,Smith,John,0608726850,I1,smith.jean@gem-labo.com,user
+4,Tim,John,0608726851,A1,john.tim@gem-labo.com,user
+11,Lou,Lecart,0608726848,I1,lecart.lou@gem-labo.com,user

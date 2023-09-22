@@ -1,0 +1,11 @@
+id,brand,model,descro,idisep,userid,isavailable,returndate,tovalidate,counter
+12,Jeulin,701652,pH-mètre Initio 2,P2,3,f,2023-09-27,f,2
+2,Stamos Soldering,S-LS-28,Alimentation double,Alim1,,t,,f,1
+4,OHAUS,FC5513/R01,Centrifugeuse Frontier Micro 5000,C5,,t,,f,3
+7,Cole-Parmer,PCRmax Alpha Cycler,Thermocycleur,T1,,t,,f,1
+11,ACCUMAX,703745,Pipette,P1,3,f,2023-09-22,f,1
+13,METTLER TOLEDO,30PX,Réfractomètre portable,RP,3,f,2023-09-22,t,1
+6,ATAGO,RX-5000i,Réfractomètre,RX5,,t,,f,0
+9,SevenExcellence,S400,pH-mètre,pH4,,t,,f,0
+10,SmartPan ProTM,XPR204S,Balance,B1,,t,,f,0
+1,Steinberg,SBS-LZ-4000/20-12,Centrifugeuse,C1,,t,,f,2
