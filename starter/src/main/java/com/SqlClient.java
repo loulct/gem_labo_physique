@@ -89,6 +89,9 @@ public class SqlClient extends AbstractVerticle {
     }
 
     public static void delTool(Pool pool, BigInteger id){
+        pool.query(String.format("DELETE FROM public.history WHERE toolid = %d", id))
+            .execute()
+            .onFailure(Throwable::printStackTrace);
         pool.query(String.format("DELETE FROM public.tools WHERE id = %d;", id))
             .execute()
             .onFailure(Throwable::printStackTrace);
