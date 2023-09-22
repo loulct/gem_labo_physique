@@ -56,7 +56,7 @@ public class SqlClient extends AbstractVerticle {
     public static CompletableFuture<JsonArray> listTool(Pool pool, String username){
         CompletableFuture<JsonArray> future = new CompletableFuture<>();
         JsonArray result = new JsonArray();
-        pool.query(String.format("SELECT tools.id, tools.brand, tools.model, tools.descro, tools.idisep, tools.userid, tools.\"isAvailable\", tools.\"returnDate\", tools.\"toValidate\", tools.counter, u.email from public.tools AS tools LEFT JOIN public.users AS u on u.id = tools.userid WHERE userid is null or u.email = '%s' ORDER BY tools.id ASC", username))
+        pool.query(String.format("SELECT tools.id, tools.brand, tools.model, tools.descro, tools.idisep, tools.userid, tools.isavailable, tools.\"returndate\", tools.\"tovalidate\", tools.counter, u.email from public.tools AS tools LEFT JOIN public.users AS u on u.id = tools.userid WHERE userid is null or u.email = '%s' ORDER BY tools.id ASC", username))
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
@@ -71,7 +71,7 @@ public class SqlClient extends AbstractVerticle {
 
     public static CompletableFuture<JsonObject> borrowTool(Pool pool, BigInteger userid, String date, BigInteger id){
         CompletableFuture<JsonObject> future = new CompletableFuture<>();
-        pool.query(String.format("UPDATE public.tools SET \"isAvailable\" = false, userid = %d, \"returnDate\" = '%s', counter = counter + 1 WHERE id = %d;", userid, date, id))
+        pool.query(String.format("UPDATE public.tools SET isavailable = false, userid = %d, returndate = '%s', counter = counter + 1 WHERE id = %d;", userid, date, id))
             .execute()
             .onFailure(Throwable::printStackTrace);
 
@@ -89,6 +89,9 @@ public class SqlClient extends AbstractVerticle {
     }
 
     public static void delTool(Pool pool, BigInteger id){
+        pool.query(String.format("DELETE FROM public.history WHERE toolid = %d", id))
+            .execute()
+            .onFailure(Throwable::printStackTrace);
         pool.query(String.format("DELETE FROM public.tools WHERE id = %d;", id))
             .execute()
             .onFailure(Throwable::printStackTrace);
@@ -101,13 +104,13 @@ public class SqlClient extends AbstractVerticle {
     }
 
     public static void validateTool(Pool pool, BigInteger id){
-        pool.query(String.format("UPDATE public.tools SET \"isAvailable\" = true, userid = null, \"returnDate\" = null, \"toValidate\" = false WHERE id = %d", id))
+        pool.query(String.format("UPDATE public.tools SET isavailable = true, userid = null, returndate = null, tovalidate = false WHERE id = %d", id))
             .execute()
             .onFailure(Throwable::printStackTrace);
     }
 
     public static void unborrowTool(Pool pool, BigInteger id){
-        pool.query(String.format("UPDATE public.tools SET \"toValidate\" = true WHERE id = %d", id))
+        pool.query(String.format("UPDATE public.tools SET tovalidate = true WHERE id = %d", id))
             .execute()
             .onFailure(Throwable::printStackTrace);
     }
@@ -136,7 +139,7 @@ public class SqlClient extends AbstractVerticle {
     public static CompletableFuture<JsonArray> adminView(Pool pool){
         CompletableFuture<JsonArray> future = new CompletableFuture<>();
         JsonArray result = new JsonArray();
-        pool.query("SELECT * FROM public.tools ORDER BY id ASC")
+        pool.query("SELECT tool.*, u.email FROM public.tools AS tool LEFT JOIN public.users AS u on u.id = tool.userid ORDER BY counter DESC;")
             .execute()
             .onSuccess(rows -> {
                 for(Row row : rows){
@@ -217,4 +220,25 @@ public class SqlClient extends AbstractVerticle {
             .onFailure(Throwable::printStackTrace);
     }
 
+    public static CompletableFuture<JsonArray> getHistory(Pool pool){
+        CompletableFuture<JsonArray> future = new CompletableFuture<>();
+        JsonArray result = new JsonArray();
+        pool.query("SELECT t.id, t.idisep, ROUND(AVG(h.returndate - h.borrowdate), 0) AS avgdays FROM public.history AS h LEFT JOIN public.tools AS t ON t.id = h.toolid GROUP BY t.id, t.idisep ORDER BY avgdays ASC;")
+            .execute()
+            .onSuccess(rows -> {
+                for(Row row : rows){
+                    result.add(row.toJson());
+                }
+                future.complete(result);
+            })
+            .onFailure(Throwable::printStackTrace);
+
+        return future;
+    }
+
+    public static void addHistory(Pool pool, String[] args, BigInteger id){
+        pool.query(String.format("INSERT INTO public.history(returndate, borrowdate, toolid) VALUES('%s', '%s', '%d');", args[0], args[1], id))
+            .execute()
+            .onFailure(Throwable::printStackTrace);
+    }
 }
