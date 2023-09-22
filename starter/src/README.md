@@ -4,4 +4,4 @@
 ### Stop server
 `jps`
 `kill [id]`
-`./gradlew --stop`
+`./gradlew clean --stop`
