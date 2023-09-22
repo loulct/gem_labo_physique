@@ -2,6 +2,54 @@
 
 ## MANUEL D'INSTALLASTION
 
+### Clone GitHub
+
+- REPO : https://github.com/loulct/gem_labo_physique
+- HTTPS : https://github.com/loulct/gem_labo_physique.git
+- GitHub CLI : gh repo clone loulct/gem_labo_physique
+- Download ZIP
+
+### Se rendre dans le dossier
+`cd starter`
+
+### Lancer le projet
+`./gradlew test run`
+
+### Arrêter le projet
+- `jps` 
+
+Affiche les processus en cours
+- `kill [Launcher id]`
+
+Tue le launcher - à utiliser lorsque `./gradlew clean --stop` >IDLE trop longtemps
+
+- `./gradlew clean --stop`
+
+Arrête les daemons gradle
+
+### Construit le projet
+`./gradlew build`
+
+Créer un executable fat-jar / über-jar dans starter/build/libs/
+
+### Executer le projet
+
+`java -jar build/libs/starter-1.0.0-SNAPSHOT-fat.jar`
+
+Execute le project
+
+Notez que l'executable .jar est déjà disponible dans le repo GitHub dans build/libs/ 
+
+Notez qu'il faudra une base de données locale pour tester le project.
+Des documents CSV sont disponible dans gem_labo_physique/postgres_csv/ pour initialiser une base de données postgreSQL.
+
+`psql localhost:5432 -d gemlabo -U postgres` (mot de passe : root)
+
+Enfin il faudra une base de données mongoDB avec une collection "user". Un document JSON et son équivalent CSV sont disponible dans gem_labo_physique/mongodb_exports/ pour initialiser une collection de données mongoDB.
+
+`mongodb://localhost:27017/gemlabo`
+
+
 ## MANUEL D'UTILISATION
 
 ### Rappel du contexte
