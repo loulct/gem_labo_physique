@@ -69,6 +69,7 @@ public class Main extends AbstractVerticle{
         String uri = config.getString("mongo_uri");
         if (uri == null) {
             uri = "mongodb://localhost:27017";
+            //uri = "mongodb://user:password@mongodb:27016";
         }
         String db = config.getString("mongo_db");
         if (db == null) {
@@ -128,9 +129,9 @@ public class Main extends AbstractVerticle{
                 .thenAccept(result -> {
                     result.stream().forEach(e -> {
                         JsonObject entry = (JsonObject) e;
-                        LocalDate date = LocalDate.parse(entry.getString("returnDate"), formatter);
+                        LocalDate date = LocalDate.parse(entry.getString("returndate"), formatter);
                         if(!date.isAfter(today)){
-                            if(!Boolean.parseBoolean(entry.getString("toValidate"))){
+                            if(!Boolean.parseBoolean(entry.getString("tovalidate"))){
                                 JsonObject data = new JsonObject().put("tool", entry);
                                 HandlebarsClient.timerRender(
                                     vertx,
@@ -161,8 +162,11 @@ public class Main extends AbstractVerticle{
                     SqlClient.getUserInfo(pool, username)
                     .thenCompose(user -> {
                         return SqlClient.adminView(pool)
-                            .thenApply(tools -> {
-                                return new JsonObject().put("user", user).put("tools", tools);
+                            .thenCompose(tools -> {
+                                return SqlClient.getHistory(pool)
+                                    .thenApply(history -> {
+                                        return new JsonObject().put("user", user).put("tools", tools).put("history", history);
+                                });
                             });
                     }).thenAccept(result -> {
                         result.put("header", header);
@@ -176,6 +180,17 @@ public class Main extends AbstractVerticle{
                         if(total_counter != 0){
                             result.getJsonArray("tools").stream()
                             .forEach(e -> ((JsonObject) e).put("percentages", (((JsonObject) e).getInteger("counter")*100)/total_counter));
+                        }
+
+                        int total_avgdays = result.getJsonArray("history").stream()
+                        .map(e -> {
+                            return ((JsonObject) e).getInteger("avgdays");
+                        })
+                        .collect(Collectors.summingInt(Integer::intValue));
+
+                        if(total_avgdays != 0){
+                            result.getJsonArray("history").stream()
+                            .forEach(e -> ((JsonObject) e).put("percentages", (((JsonObject) e).getInteger("avgdays")*100)/total_avgdays));
                         }
 
                         HandlebarsClient.simpleRender(vertx, context, result, "private/hbs/main/admin.hbs");
@@ -311,7 +326,7 @@ public class Main extends AbstractVerticle{
 
     private void handleGetTool(RoutingContext context, Pool pool){
         String toolID = context.request().getParam("toolID");
-        String date = context.request().getParam("returnDate");
+        String date = context.request().getParam("returndate");
         String username = context.user().principal().getString("username");
 
         HttpServerResponse response = context.response();
@@ -330,7 +345,7 @@ public class Main extends AbstractVerticle{
                 String stringtoday = today.format(formatter); 
                 
                 SqlClient.addHistory(pool, new String[]{date, stringtoday}, new BigInteger(toolID));
-                
+
                 HandlebarsClient.redirectRender(
                     vertx,
                     context,
