@@ -69,6 +69,7 @@ public class Main extends AbstractVerticle{
         String uri = config.getString("mongo_uri");
         if (uri == null) {
             uri = "mongodb://localhost:27017";
+            //uri = "mongodb://user:password@mongodb:27016";
         }
         String db = config.getString("mongo_db");
         if (db == null) {
@@ -83,49 +84,6 @@ public class Main extends AbstractVerticle{
 
         MongoAuthenticationOptions mongooptions = new MongoAuthenticationOptions();
         MongoAuthentication authenticationProvider = MongoAuthentication.create(mongoClient, mongooptions);
-
-        /*
-        MongoAuthorizationOptions mongoAuthzOptions = new MongoAuthorizationOptions()
-            .setCollectionName("user")
-            .setRoleField("role")
-            .setUsernameField("username");
-        MongoAuthorization authorizationProvider = MongoAuthorization.create("test", mongoClient, mongoAuthzOptions);
-        µ/
-
-        /*JsonObject authInfo = new JsonObject()
-            .put("username", "tim@test.test")
-            .put("password", "sausages");
-
-        authenticationProvider.authenticate(authInfo)
-            .onSuccess(user -> System.out.println("User: " + user.principal()))
-            .onFailure(err -> {
-                System.out.println(err);
-            }
-        );*/
-
-        /*String hashedPassword = authenticationProvider.hash(
-            "pbkdf2",
-            "mySalt",
-            "sausages"
-        );
-        JsonObject user1 = new JsonObject().put("_id", 1).put("username", "tim").put("password", hashedPassword);
-
-        mongoClient.save("user", user1)
-        .compose(id -> {
-            System.out.println("Inserted _id: " + id);
-            return mongoClient.find("users", new JsonObject().put("_id", 1));
-        })
-        .compose(res -> {
-            System.out.println("Name is " + res.get(0).getString("username"));
-            return mongoClient.find("users", new JsonObject().put("_id", 12346));
-        })
-        .onComplete(ar -> {
-            if (ar.succeeded()) {
-                System.out.println("User added");
-            } else {
-                ar.cause().printStackTrace();
-            }
-        });*/
 
         Pool pool = SqlClient.launch(vertx);
 
@@ -159,9 +117,6 @@ public class Main extends AbstractVerticle{
             .route("/eventbus/*")
             .subRouter(sockJSHandler.bridge(options));
 
-        //PropertyFileAuthentication authn = PropertyFileAuthentication.create(vertx, "vertx-users.properties");
-        //PropertyFileAuthorization authorizationProvider = PropertyFileAuthorization.create(vertx, "vertx-roles.properties");
-
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
@@ -174,12 +129,13 @@ public class Main extends AbstractVerticle{
                 .thenAccept(result -> {
                     result.stream().forEach(e -> {
                         JsonObject entry = (JsonObject) e;
-                        LocalDate date = LocalDate.parse(entry.getString("returnDate"), formatter);
+                        LocalDate date = LocalDate.parse(entry.getString("returndate"), formatter);
                         if(!date.isAfter(today)){
-                            if(!Boolean.parseBoolean(entry.getString("toValidate"))){
+                            if(!Boolean.parseBoolean(entry.getString("tovalidate"))){
                                 JsonObject data = new JsonObject().put("tool", entry);
                                 HandlebarsClient.timerRender(
-                                    vertx, 
+                                    vertx,
+                                    pool,
                                     data, 
                                     "private/hbs/emails/expired.hbs", 
                                     "Délai d'emprunt expiré !", 
@@ -206,8 +162,11 @@ public class Main extends AbstractVerticle{
                     SqlClient.getUserInfo(pool, username)
                     .thenCompose(user -> {
                         return SqlClient.adminView(pool)
-                            .thenApply(tools -> {
-                                return new JsonObject().put("user", user).put("tools", tools);
+                            .thenCompose(tools -> {
+                                return SqlClient.getHistory(pool)
+                                    .thenApply(history -> {
+                                        return new JsonObject().put("user", user).put("tools", tools).put("history", history);
+                                });
                             });
                     }).thenAccept(result -> {
                         result.put("header", header);
@@ -221,6 +180,17 @@ public class Main extends AbstractVerticle{
                         if(total_counter != 0){
                             result.getJsonArray("tools").stream()
                             .forEach(e -> ((JsonObject) e).put("percentages", (((JsonObject) e).getInteger("counter")*100)/total_counter));
+                        }
+
+                        int total_avgdays = result.getJsonArray("history").stream()
+                        .map(e -> {
+                            return ((JsonObject) e).getInteger("avgdays");
+                        })
+                        .collect(Collectors.summingInt(Integer::intValue));
+
+                        if(total_avgdays != 0){
+                            result.getJsonArray("history").stream()
+                            .forEach(e -> ((JsonObject) e).put("percentages", (((JsonObject) e).getInteger("avgdays")*100)/total_avgdays));
                         }
 
                         HandlebarsClient.simpleRender(vertx, context, result, "private/hbs/main/admin.hbs");
@@ -253,81 +223,94 @@ public class Main extends AbstractVerticle{
         );
 
         router.route("/forgotpassword").handler(context -> {
+            String username = context.request().getParam("username").toLowerCase();
+            String password = UUID.randomUUID().toString();
 
-            String userEmail = context.request().getParam("username").toLowerCase();
-            String uuid = UUID.randomUUID().toString();
+            JsonObject data = new JsonObject().put("username", username).put("password", password);
 
-            JsonObject data = new JsonObject().put("username", userEmail).put("password", uuid);
+            String hashedPassword = authenticationProvider.hash(
+                "pbkdf2",
+                "mySalt",
+                password
+            );
+            JsonObject update = new JsonObject().put("$set", new JsonObject().put("password", hashedPassword));
 
-            Properties properties = new Properties();
-            try{
-                properties.load(new FileInputStream("src/main/resources/vertx-users.properties"));
-                if(properties.getProperty("user." + userEmail) != null){
-                    properties.put("user." + userEmail, uuid);
-                    FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
-                    properties.store(outputStream, null);
-
+            mongoClient.findOneAndUpdate("user", new JsonObject().put("username", username), update, res -> {
+                if(res.succeeded() && res.result() != null){
+                    System.out.println("Utilisateur trouvé.");
+                    System.out.println("Mot de passe mis à jour.");
                     HandlebarsClient.redirectRender(
                         vertx,
                         context,
+                        pool,
                         data,
                         "private/hbs/emails/password.hbs",
                         "/login.html",
                         "Mot de passe mis à jour",
-                        userEmail
+                        username
                     );
                 }else{
-                    System.out.println("Ce compte n'existe pas");
+                    System.out.println("Cet utilisateur n'existe pas.");
                     context.response()
                         .putHeader("location", "/forgotpassword.html")
                         .setStatusCode(302)
                         .end();
-                    // TODO add alert message in html
                 }
-            }catch(IOException e){
-                System.out.println(e);
-            }
+            });
         });
 
         router.route("/signuphandler").handler(context -> {
-
-            String userEmail = context.request().getParam("lastname").toLowerCase() + 
+            String username = context.request().getParam("lastname").toLowerCase() + 
                 "." + 
                 context.request().getParam("firstname").toLowerCase() +
                 "@gem-labo.com";
+            String password = UUID.randomUUID().toString();
+            JsonObject data = new JsonObject().put("username", username).put("password", password);
+            
+            String hashedPassword = authenticationProvider.hash(
+                "pbkdf2",
+                "mySalt",
+                password
+            );
+            JsonObject user = new JsonObject().put("username", username).put("password", hashedPassword).put("role", "user");
 
-            String uuid = UUID.randomUUID().toString();
+            mongoClient.find("user", new JsonObject().put("username", username), findOneRes -> {
+                if (findOneRes.succeeded() && findOneRes.result().isEmpty()){
+                    mongoClient.save("user", user, saveRes -> {
+                        if(saveRes.succeeded()){
 
-            JsonObject data = new JsonObject().put("username", userEmail).put("password", uuid);
+                            SqlClient.addUser(pool, new String[]{context.request().getParam("firstname"), 
+                                context.request().getParam("lastname"),
+                                context.request().getParam("phone"),
+                                context.request().getParam("schoolclass"),
+                                username,
+                                "user"
+                            });
 
-            Properties properties = new Properties();
-            try{
-                properties.load(new FileInputStream("src/main/resources/vertx-users.properties"));
-                if(properties.getProperty("user." + userEmail) == null){
-                    properties.put("user." + userEmail, uuid);
-                    FileOutputStream outputStream = new FileOutputStream("src/main/resources/vertx-users.properties");
-                    properties.store(outputStream, null);
-
-                    HandlebarsClient.redirectRender(
-                        vertx,
-                        context,
-                        data,
-                        "private/hbs/emails/setup.hbs",
-                        "/login.html",
-                        "Votre compte a été créé",
-                        userEmail
-                    );
+                            HandlebarsClient.redirectRender(
+                                vertx,
+                                context,
+                                pool,
+                                data,
+                                "private/hbs/emails/setup.hbs",
+                                "/login.html",
+                                "Votre compte a été créé",
+                                username
+                            );
+                            context.response()
+                                .putHeader("location", "/login.html")
+                                .setStatusCode(302)
+                                .end();
+                        }else{
+                            System.out.println(saveRes.cause());
+                        }
+                    });
+                }else if(findOneRes.failed()){
+                    System.out.println(findOneRes.cause());
                 }else{
                     System.out.println("Ce compte existe déjà !");
-                    context.response()
-                        .putHeader("location", "/signup.html")
-                        .setStatusCode(302)
-                        .end();
-                    // TODO add alert message in html
                 }
-            }catch(IOException e){
-                System.out.println(e);
-            }
+            });
         });
 
         router.route("/logout").handler(context -> {
@@ -343,7 +326,7 @@ public class Main extends AbstractVerticle{
 
     private void handleGetTool(RoutingContext context, Pool pool){
         String toolID = context.request().getParam("toolID");
-        String date = context.request().getParam("returnDate");
+        String date = context.request().getParam("returndate");
         String username = context.user().principal().getString("username");
 
         HttpServerResponse response = context.response();
@@ -357,9 +340,16 @@ public class Main extends AbstractVerticle{
                         return new JsonObject().put("tool", tool);
                     });
             }).thenAccept(result -> {
+                LocalDate today = LocalDate.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                String stringtoday = today.format(formatter); 
+                
+                SqlClient.addHistory(pool, new String[]{date, stringtoday}, new BigInteger(toolID));
+
                 HandlebarsClient.redirectRender(
                     vertx,
                     context,
+                    pool,
                     result,
                     "private/hbs/emails/borrowed.hbs",
                     "/private/tools",
@@ -400,6 +390,7 @@ public class Main extends AbstractVerticle{
                 HandlebarsClient.redirectRender(
                     vertx,
                     context,
+                    pool,
                     result,
                     "private/hbs/emails/validated.hbs",
                     "/private/admin",

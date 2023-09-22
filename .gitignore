@@ -4,4 +4,10 @@
 
 .vscode
 
+mongodb_data
+
+postgresql_data
+
+*.log
+
 build

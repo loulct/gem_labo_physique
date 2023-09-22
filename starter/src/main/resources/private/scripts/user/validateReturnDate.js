@@ -17,7 +17,7 @@ document.querySelectorAll("#borrow").forEach(function(btn){
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
                     },
-                    body: 'returnDate=' + encodeURIComponent(date)
+                    body: 'returndate=' + encodeURIComponent(date)
                 });
 
                 window.location.href = "/private/tools";
