@@ -37,6 +37,8 @@ dependencies {
   implementation("io.vertx:vertx-web-templ-handlebars:$vertxVersion")
   implementation("io.vertx:vertx-sql-client:$vertxVersion")
   implementation("io.vertx:vertx-pg-client:$vertxVersion")
+  implementation("io.vertx:vertx-mongo-client:$vertxVersion")
+  implementation("io.vertx:vertx-auth-mongo:$vertxVersion")
   implementation("org.testcontainers:postgresql:1.12.4")
   implementation("com.ongres.scram:client:2.1")
   implementation("org.postgresql:postgresql:42.2.18")
