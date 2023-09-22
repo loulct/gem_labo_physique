@@ -66,7 +66,7 @@
             </thead>
             <tbody>
                 {{#each tools}}
-                    {{#if this.isAvailable}}
+                    {{#if this.isavailable}}
                         <tr>
                             <td>{{this.id}}</td>
                             <td>{{this.brand}}</td>
@@ -112,10 +112,10 @@
             </thead>
             <tbody>
                 {{#each tools}}
-                    {{#if this.isAvailable}}
+                    {{#if this.isavailable}}
 
                     {{else}}
-                        {{#if this.toValidate}}
+                        {{#if this.tovalidate}}
 
                         {{else}}
                             <tr>
@@ -124,7 +124,7 @@
                                 <td>{{this.model}}</td>
                                 <td>{{this.descro}}</td>
                                 <td>{{this.idisep}}</td>
-                                <td id="returnDate" data-value="{{this.returnDate}}">{{this.returnDate}}</td>
+                                <td id="returndate" data-value="{{this.returndate}}">{{this.returndate}}</td>
                                 <td><a href="/private/unborrow/{{this.id}}">Rendre le matériel</a></td>
                             </tr>
                         {{/if}}
