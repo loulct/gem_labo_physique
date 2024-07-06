@@ -41,11 +41,10 @@ Execute le project
 Notez que l'executable .jar est déjà disponible dans le repo GitHub dans build/libs/ 
 
 Notez qu'il faudra une base de données locale pour tester le project.
-Des documents CSV sont disponible dans gem_labo_physique/postgres_csv/ pour initialiser une base de données postgreSQL.
 
 `psql localhost:5432 -d gemlabo -U postgres` (mot de passe : root)
 
-Enfin il faudra une base de données mongoDB avec une collection "user". Un document JSON et son équivalent CSV sont disponible dans gem_labo_physique/mongodb_exports/ pour initialiser une collection de données mongoDB.
+Enfin il faudra une base de données mongoDB avec une collection "user".
 
 `mongodb://localhost:27017/gemlabo`
 
@@ -75,23 +74,23 @@ et plus sûre.
 ### Création d'un compte
 Lors de la création de son compte l’élève doit remplir des champs tels que prénom, nom, téléphone, classe.
 
-![](./markdown_resources/signup.png)
+![](./markdownImages/signup.png)
 
 ### Email de confirmation
 Un e-mail de création est envoyé à l’élève avec copie aux administrateurs du labo.
 
-![](./markdown_resources/emailUserCreated.png)
+![](./markdownImages/emailUserCreated.png)
 
 ### Page de Login
-![](./markdown_resources/login.png)
+![](./markdownImages/login.png)
 
 ### Mot de passe oublié ?
 Si le mot de passe est oublié l’élève peut en demander un nouveau.
 
-![](./markdown_resources/forgotpassword.png)
+![](./markdownImages/forgotpassword.png)
 
 ### Email de réinitialisation du mot de passe
-![](./markdown_resources/emailForgotPassword.png)
+![](./markdownImages/emailForgotPassword.png)
 
 ## Vue utilisateur
 ### Liste du matériel disponible
@@ -100,39 +99,39 @@ En se connectant l’élève peut visualiser :
 - La date de retour prévue
 - La liste des matériels disponibles
 
-![](./markdown_resources/userpage.png)
+![](./markdownImages/userpage.png)
 
 ### Déconnexion
 Au bout d’un certain temps déconnexion automatique.
 
-![](./markdown_resources/logout.png)
+![](./markdownImages/logout.png)
 
 ### Emprunt d'un matériel
 Liste de matériel disponibles pouvant être emprunté : Liste de matériel pré-établie.
 
-![](./markdown_resources/selectReturnDate.png)
-![](./markdown_resources/selectReturnDate2.png)
-![](./markdown_resources/returnDateWarning.png)
+![](./markdownImages/selectReturnDate.png)
+![](./markdownImages/selectReturnDate2.png)
+![](./markdownImages/returnDateWarning.png)
 
 ### Email de confirmation de l'emprunt
 Quand un élève emprunte un matériel, un e-mail de confirmation lui est automatiquement envoyé avec en copie les administrateurs du laboratoire.
 
-![](./markdown_resources/emailBorrowedTool.png)
+![](./markdownImages/emailBorrowedTool.png)
 
 ### Rendre le matériel
 L’élève renseigne librement le retour du matériel.
 
-![](./markdown_resources/returnTool.png)
+![](./markdownImages/returnTool.png)
 
 ### Ajout d'un matériel
 Si un matériel n’est pas présent dans la liste : possibilité pour l’élève d’ajouter librement un matériel à la liste. Il y aura un champs « marque », un champs « modèle », un champs « description matériel », un champs « identification Isep ».
 
-![](./markdown_resources/addToolWarning.png)
+![](./markdownImages/addToolWarning.png)
 
 ### Email "expiration" du délai d'emprunt
 Si la date de retour est dépassée un email de rappel est envoyé une fois par jour avec copie aux administrateurs du laboratoire.
 
-![](./markdown_resources/emailExpired.png)
+![](./markdownImages/emailExpired.png)
 
 ## Vue administrateur
 Un administrateur peut :
@@ -143,29 +142,29 @@ Un administrateur peut :
 
 Possibilité d’effacer un matériel de la liste pour les administrateurs.
 
-![](./markdown_resources/adminView.png)
+![](./markdownImages/adminView.png)
 
 ### Statistiques d'emprunt
 Statistiques sur les matériels emprunts :
 - Par fréquences d’emprunts (du plus souvent emprunté au moins souvent)
 
-![](./markdown_resources/stats.png)
+![](./markdownImages/stats.png)
 
 - Par durée d’emprunts (du plus court au plus long)
-![](./markdown_resources/stats2.png)
+![](./markdownImages/stats2.png)
 
 ### Matériel emprunté par les utilisateur
 
-![](./markdown_resources/adminViewBorrowed.png)
+![](./markdownImages/adminViewBorrowed.png)
 
 ### Validation d'un retour de matériel
 Quand un matériel est rapporté, le retour effectif du matériel doit être validé par un membre du personnel du 
 laboratoire.
 
-![](./markdown_resources/validateReturn.png)
+![](./markdownImages/validateReturn.png)
 
 ### Email de confirmation de la validation du retour du matériel
 Un administrateur valide le retour du matériel 
 et un e-mail de confirmation est envoyé à l’élève.
 
-![](./markdown_resources/emailReturnTool.png)
+![](./markdownImages/emailReturnTool.png)
