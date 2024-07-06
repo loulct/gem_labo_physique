@@ -1,6 +1,0 @@
-_id,username,password,role
-650cca6fa34da404394ef22d,lecart-louis@orange.fr,$pbkdf2$mySalt$gadrOj/zsl3hKjS8sDwu+WbrO3NHavSimIt2Xgw3gXjxpoks9M+YqUFWLjG+fczg6csTWBFn8YFIvbzI4sdK/A,admin
-650d41812fdc6ebe3424790e,carpentier.gilles@gem-labo.com,$pbkdf2$mySalt$gadrOj/zsl3hKjS8sDwu+WbrO3NHavSimIt2Xgw3gXjxpoks9M+YqUFWLjG+fczg6csTWBFn8YFIvbzI4sdK/A,admin
-650d41be2fdc6ebe3424790f,smith.jean@gem-labo.com,$pbkdf2$mySalt$gadrOj/zsl3hKjS8sDwu+WbrO3NHavSimIt2Xgw3gXjxpoks9M+YqUFWLjG+fczg6csTWBFn8YFIvbzI4sdK/A,user
-650d41df2fdc6ebe34247910,john.tim@gem-labo.com,$pbkdf2$mySalt$gadrOj/zsl3hKjS8sDwu+WbrO3NHavSimIt2Xgw3gXjxpoks9M+YqUFWLjG+fczg6csTWBFn8YFIvbzI4sdK/A,user
-650d431d4fd7f31a7708f9de,lecart.lou@gem-labo.com,$pbkdf2$mySalt$1rwmBwm3k5BDBYaabiXlowdvWK4IV/XhAIBpEUBpQq879pP7OU2+PRn6Ch/eB0r8r3fD9CFAZigU3UAqvwgCKA,user
